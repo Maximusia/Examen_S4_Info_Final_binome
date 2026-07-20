@@ -18,7 +18,7 @@ class AuthController extends BaseController
 
     public function login()
     {
-        $phone = trim($this->request->getPost('phone') ?? '');
+        $phone = trim($this->request->getPost('phone_number') ?? '');
 
         if (empty($phone)) {
             return redirect()->back()->with('error', 'Veuillez entrer un numéro.');
@@ -48,7 +48,7 @@ class AuthController extends BaseController
         session()->set([
             'user_id'   => $user['id'],
             'logged_in' => true,
-            'phone'     => $user['phone_number'],
+            'phone_number' => $user['phone_number'],
         ]);
 
         return redirect()->to('/dashboard')->with('success', 'Bienvenue ' . $user['phone_number']);

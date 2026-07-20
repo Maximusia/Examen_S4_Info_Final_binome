@@ -173,3 +173,4 @@
 
     <!-- CONTENU PRINCIPAL -->
     <div class="container container-main">
+        <?= $this->renderSection('content') ?>
