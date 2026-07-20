@@ -26,7 +26,7 @@
 
                     <div class="mb-4">
                         <label for="amount" class="form-label">
-                            <i class="fas fa-money-bill"></i> Montant à retirer (Ar)
+                            <i class="fas fa-money-bill"></i> Montant a retirer (Ar)
                         </label>
                         <div class="input-group">
                             <span class="input-group-text"><i class="fas fa-currency-circle"></i></span>
@@ -41,29 +41,29 @@
 
                     <div class="mb-4">
                         <label for="beneficiary_type" class="form-label">
-                            <i class="fas fa-user-check"></i> Type de bénéficiaire
+                            <i class="fas fa-user-check"></i> Type de beneficiaire
                         </label>
                         <select class="form-select" id="beneficiary_type" name="beneficiary_type" required>
-                            <option value="">-- Sélectionnez un type --</option>
+                            <option value="">-- Selectionnez un type --</option>
                             <option value="agent">Agent de retrait</option>
                             <option value="bank">Compte bancaire</option>
-                            <option value="airtime">Recharge téléphonique</option>
+                            <option value="airtime">Recharge telephonique</option>
                         </select>
-                        <div class="invalid-feedback">Veuillez sélectionner un type de bénéficiaire</div>
+                        <div class="invalid-feedback">Veuillez selectionner un type de beneficiaire</div>
                     </div>
 
                     <div class="mb-4">
                         <label for="beneficiary" class="form-label">
-                            <i class="fas fa-phone"></i> Numéro/Compte du bénéficiaire
+                            <i class="fas fa-phone"></i> Numero/Compte du beneficiaire
                         </label>
-                        <input type="text" class="form-control" id="beneficiary" name="beneficiary" placeholder="Numéro du bénéficiaire" required>
-                        <div class="invalid-feedback">Veuillez entrer un numéro valide</div>
+                        <input type="text" class="form-control" id="beneficiary" name="beneficiary" placeholder="Numero du beneficiaire" required>
+                        <div class="invalid-feedback">Veuillez entrer un numero valide</div>
                     </div>
 
                     <div class="alert alert-light border mb-4">
-                        <h6 class="mb-3"><i class="fas fa-file-alt"></i> Récapitulatif</h6>
+                        <h6 class="mb-3"><i class="fas fa-file-alt"></i> Recapitulatif</h6>
                         <div class="d-flex justify-content-between mb-2">
-                            <span>Montant demandé:</span>
+                            <span>Montant demande:</span>
                             <strong id="amount_display">0 Ar</strong>
                         </div>
                         <div class="d-flex justify-content-between mb-2">
@@ -72,15 +72,18 @@
                         </div>
                         <hr>
                         <div class="d-flex justify-content-between">
-                            <strong>Vous recevrez:</strong>
-                            <strong id="total_display" class="text-success">0 Ar</strong>
+                            <strong>Total debite:</strong>
+                            <strong id="total_display" class="text-danger">0 Ar</strong>
                         </div>
-                        <small class="text-muted d-block mt-2"><i class="fas fa-info-circle"></i> Les frais seront déduits du montant demandé</small>
+                        <small class="text-muted d-block mt-2">
+                            <i class="fas fa-info-circle"></i>
+                            Les frais sont ajoutes au montant demande et debites du solde
+                        </small>
                     </div>
 
                     <div id="fee_warning" class="alert alert-warning d-none mb-4">
                         <i class="fas fa-exclamation-triangle"></i>
-                        <strong>Attention!</strong> Des frais s'appliquent à ce retrait.
+                        <strong>Attention!</strong> Des frais s'appliquent a ce retrait.
                     </div>
 
                     <div class="d-grid gap-2 mb-3">
@@ -99,7 +102,7 @@
     <div class="col-md-4 col-lg-6">
         <div class="card bg-light mb-3">
             <div class="card-header bg-warning text-dark">
-                <h6 class="mb-0"><i class="fas fa-percentage"></i> Barème des frais</h6>
+                <h6 class="mb-0"><i class="fas fa-percentage"></i> Bareme des frais</h6>
             </div>
             <div class="card-body">
                 <div class="table-responsive">
@@ -108,16 +111,18 @@
                             <tr><th>Montant</th><th>Frais</th></tr>
                         </thead>
                         <tbody>
-                            <tr><td>100 - 1 000 Ar</td><td><strong>50 Ar</strong></td></tr>
-                            <tr><td>1 001 - 5 000 Ar</td><td><strong>50 Ar</strong></td></tr>
-                            <tr><td>5 001 - 10 000 Ar</td><td><strong>100 Ar</strong></td></tr>
-                            <tr><td>10 001 - 25 000 Ar</td><td><strong>200 Ar</strong></td></tr>
-                            <tr><td>25 001 - 50 000 Ar</td><td><strong>400 Ar</strong></td></tr>
-                            <tr><td>50 001 - 100 000 Ar</td><td><strong>800 Ar</strong></td></tr>
-                            <tr><td>100 001 - 250 000 Ar</td><td><strong>1 500 Ar</strong></td></tr>
-                            <tr><td>250 001 - 500 000 Ar</td><td><strong>1 500 Ar</strong></td></tr>
-                            <tr><td>500 001 - 1 000 000 Ar</td><td><strong>2 500 Ar</strong></td></tr>
-                            <tr><td>1 000 001+ Ar</td><td><strong>3 000 Ar</strong></td></tr>
+                            <?php if (!empty($withdrawal_fees)): ?>
+                                <?php foreach ($withdrawal_fees as $fee): ?>
+                                    <tr>
+                                        <td>
+                                            <?= number_format($fee['min_amount'] ?? 0, 0, ',', ' ') ?> - <?= number_format($fee['max_amount'] ?? 0, 0, ',', ' ') ?> Ar
+                                        </td>
+                                        <td><strong><?= number_format($fee['fee'] ?? 0, 0, ',', ' ') ?> Ar</strong></td>
+                                    </tr>
+                                <?php endforeach; ?>
+                            <?php else: ?>
+                                <tr><td colspan="2" class="text-center text-muted">Aucun bareme de retrait configure.</td></tr>
+                            <?php endif; ?>
                         </tbody>
                     </table>
                 </div>
@@ -134,37 +139,38 @@
 </div>
 
 <script>
-    const fees = [
-        { min: 100, max: 1000, fee: 50 },
-        { min: 1001, max: 5000, fee: 50 },
-        { min: 5001, max: 10000, fee: 100 },
-        { min: 10001, max: 25000, fee: 200 },
-        { min: 25001, max: 50000, fee: 400 },
-        { min: 50001, max: 100000, fee: 800 },
-        { min: 100001, max: 250000, fee: 1500 },
-        { min: 250001, max: 500000, fee: 1500 },
-        { min: 500001, max: 1000000, fee: 2500 },
-        { min: 1000001, max: 2000000, fee: 3000 }
-    ];
+    const fees = <?= json_encode(array_values($withdrawal_fees ?? []), JSON_UNESCAPED_UNICODE) ?>;
 
     function getFee(amount) {
-        for (let rule of fees) {
-            if (amount >= rule.min && amount <= rule.max) {
-                return rule.fee;
+        for (const rule of fees) {
+            if (amount >= Number(rule.min_amount) && amount <= Number(rule.max_amount)) {
+                return Number(rule.fee);
             }
         }
         return 0;
     }
 
-    document.getElementById('amount').addEventListener('input', function() {
-        const amount = parseInt(this.value) || 0;
+    const amountInput = document.getElementById('amount');
+    const amountDisplay = document.getElementById('amount_display');
+    const feeDisplay = document.getElementById('fee_display');
+    const totalDisplay = document.getElementById('total_display');
+    const feeWarning = document.getElementById('fee_warning');
+
+    amountInput.addEventListener('input', function() {
+        const amount = parseInt(this.value, 10) || 0;
         const fee = getFee(amount);
-        const total = amount - fee;
-        const formatter = new Intl.NumberFormat('fr-FR', { style: 'currency', currency: 'MGA', minimumFractionDigits: 0 });
-        document.getElementById('amount_display').textContent = formatter.format(amount).replace('MGA', 'Ar');
-        document.getElementById('fee_display').textContent = formatter.format(fee).replace('MGA', 'Ar');
-        document.getElementById('total_display').textContent = formatter.format(total).replace('MGA', 'Ar');
-        document.getElementById('fee_warning').classList.toggle('d-none', fee === 0);
+        const total = amount + fee;
+        const formatter = new Intl.NumberFormat('fr-FR', {
+            style: 'currency',
+            currency: 'MGA',
+            minimumFractionDigits: 0,
+            maximumFractionDigits: 0
+        });
+
+        amountDisplay.textContent = formatter.format(amount).replace('MGA', 'Ar');
+        feeDisplay.textContent = formatter.format(fee).replace('MGA', 'Ar');
+        totalDisplay.textContent = formatter.format(total).replace('MGA', 'Ar');
+        feeWarning.classList.toggle('d-none', fee === 0);
     });
 </script>
 

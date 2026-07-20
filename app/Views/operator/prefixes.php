@@ -5,65 +5,61 @@
 <div class="row mb-4">
     <div class="col-md-8">
         <h1 class="mb-2">
-            <i class="fas fa-phone text-primary"></i> Gestion des préfixes
+            <i class="fas fa-phone text-primary"></i> Gestion des prefixes
         </h1>
-        <p class="text-muted">Gérez les préfixes téléphoniques autorisés sur la plateforme</p>
+        <p class="text-muted">Gerez les prefixes telephoniques autorises sur la plateforme</p>
     </div>
     <div class="col-md-4 text-md-end">
-        <button class="btn btn-success" data-bs-toggle="collapse" data-bs-target="#addPrefixForm">
-            <i class="fas fa-plus-circle"></i> Ajouter un préfixe
+        <button type="button" class="btn btn-success" id="toggleAddPrefixBtn">
+            <i class="fas fa-plus-circle"></i> Ajouter un prefixe
         </button>
     </div>
 </div>
 
-<!-- Formulaire d'ajout de préfixe (formulaire collapse) -->
-<div class="collapse mb-4" id="addPrefixForm">
-    <div class="card bg-light">
-        <div class="card-body">
-            <h5 class="card-title mb-3">
-                <i class="fas fa-plus"></i> Ajouter un nouveau préfixe
-            </h5>
-            <form action="<?= base_url('/admin/prefixes/add') ?>" method="post" class="needs-validation" novalidate>
-                <?= csrf_field() ?>
+<div class="card bg-light mb-4 d-none" id="addPrefixForm">
+    <div class="card-body">
+        <h5 class="card-title mb-3">
+            <i class="fas fa-plus"></i> Ajouter un nouveau prefixe
+        </h5>
+        <form action="<?= base_url('/admin/prefixes/add') ?>" method="post" class="needs-validation" novalidate>
+            <?= csrf_field() ?>
 
-                <div class="row">
-                    <div class="col-md-12 mb-3">
-                        <label for="prefix" class="form-label">
-                            <i class="fas fa-barcode"></i> Préfixe (ex: 033)
-                        </label>
-                        <input 
-                            type="text" 
-                            class="form-control" 
-                            id="prefix" 
-                            name="prefix" 
-                            placeholder="Entrez le préfixe (ex: 033)"
-                            pattern="^0\d{2}$"
-                            maxlength="3"
-                            required
-                        >
-                        <small class="form-text text-muted">
-                            Format: 3 chiffres commençant par 0 (ex: 033, 034, 037)
-                        </small>
-                        <div class="invalid-feedback">
-                            Veuillez entrer un préfixe valide (ex: 033)
-                        </div>
+            <div class="row">
+                <div class="col-md-12 mb-3">
+                    <label for="prefix" class="form-label">
+                        <i class="fas fa-barcode"></i> Prefixe (ex: 033)
+                    </label>
+                    <input
+                        type="text"
+                        class="form-control"
+                        id="prefix"
+                        name="prefix"
+                        placeholder="Entrez le prefixe (ex: 033)"
+                        pattern="^0\d{2}$"
+                        maxlength="3"
+                        required
+                    >
+                    <small class="form-text text-muted">
+                        Format: 3 chiffres commencant par 0 (ex: 033, 034, 037)
+                    </small>
+                    <div class="invalid-feedback">
+                        Veuillez entrer un prefixe valide (ex: 033)
                     </div>
                 </div>
+            </div>
 
-                <div class="d-grid gap-2">
-                    <button type="submit" class="btn btn-success">
-                        <i class="fas fa-save"></i> Ajouter le préfixe
-                    </button>
-                    <button type="button" class="btn btn-secondary" data-bs-toggle="collapse" data-bs-target="#addPrefixForm">
-                        Annuler
-                    </button>
-                </div>
-            </form>
-        </div>
+            <div class="d-grid gap-2">
+                <button type="submit" class="btn btn-success">
+                    <i class="fas fa-save"></i> Ajouter le prefixe
+                </button>
+                <button type="button" class="btn btn-secondary" id="cancelAddPrefixBtn">
+                    Annuler
+                </button>
+            </div>
+        </form>
     </div>
 </div>
 
-<!-- Statistiques des préfixes -->
 <div class="row mb-4">
     <div class="col-md-12">
         <div class="card bg-light">
@@ -71,7 +67,7 @@
                 <div class="row text-center">
                     <div class="col-md-4">
                         <div>
-                            <h6 class="text-muted">Total préfixes</h6>
+                            <h6 class="text-muted">Total prefixes</h6>
                             <h3 class="text-primary"><?= $total_prefixes ?? 0 ?></h3>
                         </div>
                     </div>
@@ -93,7 +89,6 @@
     </div>
 </div>
 
-<!-- Tableau des préfixes -->
 <div class="row">
     <div class="col-md-12">
         <?php if (!empty($prefixes)): ?>
@@ -102,11 +97,8 @@
                     <table class="table table-hover table-sm mb-0">
                         <thead class="table-light">
                             <tr>
-                                <th style="width: 10%;">
-                                    <i class="fas fa-hashtag"></i> ID
-                                </th>
                                 <th style="width: 20%;">
-                                    <i class="fas fa-barcode"></i> Préfixe
+                                    <i class="fas fa-barcode"></i> Prefixe
                                 </th>
                                 <th style="width: 35%;">
                                     <i class="fas fa-phone"></i> Exemples
@@ -119,40 +111,32 @@
                         <tbody>
                             <?php foreach ($prefixes as $prefix): ?>
                                 <tr>
-                                    <!-- ID -->
-                                    <td>
+                                    <!-- <td>
                                         <small class="text-muted"><?= $prefix['id'] ?? '-' ?></small>
-                                    </td>
-
-                                    <!-- Préfixe -->
+                                    </td> -->
                                     <td>
                                         <span class="badge bg-primary" style="font-size: 1rem; padding: 0.5rem 1rem;">
                                             <?= $prefix['prefix'] ?? '-' ?>
                                         </span>
                                     </td>
-
-                                    <!-- Exemples de numéros -->
                                     <td>
                                         <small class="font-monospace">
                                             <?= $prefix['prefix'] ?>1234567
                                         </small>
                                     </td>
-
-                                    <!-- Actions -->
                                     <td>
-                                        <!-- Bouton Modifier -->
-                                        <button 
-                                            class="btn btn-sm btn-outline-warning"
-                                            data-bs-toggle="modal"
-                                            data-bs-target="#editModal<?= $prefix['id'] ?? '' ?>"
+                                        <button
+                                            type="button"
+                                            class="btn btn-sm btn-outline-warning js-edit-prefix"
+                                            data-prefix-id="<?= $prefix['id'] ?? '' ?>"
+                                            data-prefix-value="<?= esc($prefix['prefix'] ?? '') ?>"
                                             title="Modifier"
                                         >
                                             <i class="fas fa-edit"></i>
                                         </button>
 
-                                        <!-- Bouton Supprimer -->
-                                        <form 
-                                            action="<?= base_url('/admin/prefixes/delete/' . ($prefix['id'] ?? '')) ?>" 
+                                        <form
+                                            action="<?= base_url('/admin/prefixes/delete/' . ($prefix['id'] ?? '')) ?>"
                                             method="post"
                                             style="display: inline;"
                                             onsubmit="return confirm('Êtes-vous sûr de vouloir supprimer ce préfixe?');"
@@ -164,46 +148,6 @@
                                         </form>
                                     </td>
                                 </tr>
-
-                                <!-- Modal de modification -->
-                                <div class="modal fade" id="editModal<?= $prefix['id'] ?? '' ?>" tabindex="-1">
-                                    <div class="modal-dialog">
-                                        <div class="modal-content">
-                                            <div class="modal-header">
-                                                <h5 class="modal-title">
-                                                    <i class="fas fa-edit"></i> Modifier le préfixe
-                                                </h5>
-                                                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-                                            </div>
-                                            <form action="<?= base_url('/admin/prefixes/update/' . ($prefix['id'] ?? '')) ?>" method="post">
-                                                <?= csrf_field() ?>
-                                                <div class="modal-body">
-                                                    <div class="mb-3">
-                                                        <label for="prefixEdit<?= $prefix['id'] ?? '' ?>" class="form-label">Préfixe</label>
-                                                        <input 
-                                                            type="text" 
-                                                            class="form-control" 
-                                                            id="prefixEdit<?= $prefix['id'] ?? '' ?>"
-                                                            name="prefix"
-                                                            value="<?= $prefix['prefix'] ?? '' ?>"
-                                                            pattern="^0\d{2}$"
-                                                            maxlength="3"
-                                                            required
-                                                        >
-                                                    </div>
-                                                </div>
-                                                <div class="modal-footer">
-                                                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
-                                                        Fermer
-                                                    </button>
-                                                    <button type="submit" class="btn btn-warning">
-                                                        <i class="fas fa-save"></i> Mettre à jour
-                                                    </button>
-                                                </div>
-                                            </form>
-                                        </div>
-                                    </div>
-                                </div>
                             <?php endforeach; ?>
                         </tbody>
                     </table>
@@ -212,29 +156,63 @@
         <?php else: ?>
             <div class="alert alert-warning">
                 <i class="fas fa-exclamation-circle"></i>
-                <strong>Aucun préfixe</strong><br>
-                Aucun préfixe n'a été ajouté pour le moment. 
-                <button class="btn btn-sm btn-warning" data-bs-toggle="collapse" data-bs-target="#addPrefixForm">
-                    Ajouter un préfixe maintenant
+                <strong>Aucun prefixe</strong><br>
+                Aucun prefixe n'a ete ajoute pour le moment.
+                <button type="button" class="btn btn-sm btn-warning" id="emptyAddPrefixBtn">
+                    Ajouter un prefixe maintenant
                 </button>
             </div>
         <?php endif; ?>
     </div>
 </div>
 
-<!-- Informations supplémentaires -->
+<div class="card shadow mt-4 d-none" id="editPrefixPanel">
+    <div class="card-body">
+        <div class="d-flex justify-content-between align-items-center mb-3">
+            <h5 class="mb-0">
+                <i class="fas fa-edit"></i> Modifier le prefixe
+            </h5>
+            <button type="button" class="btn btn-sm btn-outline-secondary" id="cancelEditPrefixBtn">
+                Fermer
+            </button>
+        </div>
+        <form method="post" id="editPrefixForm">
+            <?= csrf_field() ?>
+            <div class="row g-3 align-items-end">
+                <div class="col-md-4">
+                    <label for="editPrefixValue" class="form-label">Prefixe</label>
+                    <input
+                        type="text"
+                        class="form-control"
+                        id="editPrefixValue"
+                        name="prefix"
+                        pattern="^0\d{2}$"
+                        maxlength="3"
+                        required
+                    >
+                </div>
+                <div class="col-md-4">
+                    <button type="submit" class="btn btn-warning w-100">
+                        <i class="fas fa-save"></i> Mettre a jour
+                    </button>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+
 <div class="row mt-4">
     <div class="col-md-6">
         <div class="card bg-light">
             <div class="card-header">
                 <h6 class="mb-0">
-                    <i class="fas fa-lightbulb"></i> À propos des préfixes
+                    <i class="fas fa-lightbulb"></i> A propos des prefixes
                 </h6>
             </div>
             <div class="card-body small">
                 <p>
-                    Les préfixes téléphoniques définissent les numéros autorisés à utiliser le service.
-                    Ils sont utilisés à la connexion automatique des clients par numéro.
+                    Les prefixes telephoniques definissent les numeros autorises a utiliser le service.
+                    Ils sont utilises a la connexion automatique des clients par numero.
                 </p>
                 <p class="mb-0">
                     <strong>Exemples courants:</strong>
@@ -256,8 +234,8 @@
             </div>
             <div class="card-body small">
                 <ul class="list-unstyled mb-0">
-                    <li><i class="fas fa-check-circle text-success"></i> Vérifiez avant d'ajouter un préfixe</li>
-                    <li><i class="fas fa-check-circle text-success"></i> Les modifications sont immédiates</li>
+                    <li><i class="fas fa-check-circle text-success"></i> Verifiez avant d'ajouter un prefixe</li>
+                    <li><i class="fas fa-check-circle text-success"></i> Les modifications sont immediates</li>
                     <li><i class="fas fa-check-circle text-success"></i> Les suppressions affectent les nouveaux comptes</li>
                     <li><i class="fas fa-check-circle text-success"></i> Documentez les changements</li>
                 </ul>
@@ -266,7 +244,6 @@
     </div>
 </div>
 
-<!-- Retour au tableau de bord -->
 <div class="row mt-4">
     <div class="col-md-12">
         <a href="<?= base_url('/admin/dashboard') ?>" class="btn btn-secondary">
@@ -274,6 +251,45 @@
         </a>
     </div>
 </div>
+
+<script>
+    const addPrefixForm = document.getElementById('addPrefixForm');
+    const editPrefixPanel = document.getElementById('editPrefixPanel');
+    const editPrefixForm = document.getElementById('editPrefixForm');
+    const editPrefixValue = document.getElementById('editPrefixValue');
+
+    function showAddPrefixForm() {
+        addPrefixForm.classList.remove('d-none');
+        addPrefixForm.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+
+    function hideAddPrefixForm() {
+        addPrefixForm.classList.add('d-none');
+    }
+
+    function showEditPrefixForm(id, value) {
+        editPrefixForm.action = '<?= base_url('/admin/prefixes/update/') ?>' + id;
+        editPrefixValue.value = value || '';
+        editPrefixPanel.classList.remove('d-none');
+        editPrefixPanel.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        editPrefixValue.focus();
+    }
+
+    function hideEditPrefixForm() {
+        editPrefixPanel.classList.add('d-none');
+    }
+
+    document.getElementById('toggleAddPrefixBtn')?.addEventListener('click', showAddPrefixForm);
+    document.getElementById('emptyAddPrefixBtn')?.addEventListener('click', showAddPrefixForm);
+    document.getElementById('cancelAddPrefixBtn')?.addEventListener('click', hideAddPrefixForm);
+    document.getElementById('cancelEditPrefixBtn')?.addEventListener('click', hideEditPrefixForm);
+
+    document.querySelectorAll('.js-edit-prefix').forEach((button) => {
+        button.addEventListener('click', () => {
+            showEditPrefixForm(button.dataset.prefixId, button.dataset.prefixValue);
+        });
+    });
+</script>
 
 <?= $this->endSection() ?>
 <?= $this->include('layouts/footer') ?>

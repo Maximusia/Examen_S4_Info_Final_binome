@@ -4,16 +4,22 @@ namespace App\Controllers;
 
 use App\Models\UserModel;
 use App\Models\TransactionModel;
+use App\Models\FeeRuleModel;
+use App\Models\OperationTypeModel;
 
 class ClientController extends BaseController
 {
     private $userModel;
     private $transactionModel;
+    private $feeRuleModel;
+    private $operationTypeModel;
 
     public function __construct()
     {
         $this->userModel = new UserModel();
         $this->transactionModel = new TransactionModel();
+        $this->feeRuleModel = new FeeRuleModel();
+        $this->operationTypeModel = new OperationTypeModel();
     }
 
     private function getCurrentUser()
@@ -76,7 +82,12 @@ class ClientController extends BaseController
     // ---------- RETRAIT ----------
     public function withdraw()
     {
-        return view('client/withdraw');
+        $user = $this->getCurrentUser();
+
+        return view('client/withdraw', [
+            'balance' => $user['balance'],
+            'withdrawal_fees' => $this->getFeeRulesByCode('retrait'),
+        ]);
     }
 
     public function doWithdraw()
@@ -112,7 +123,12 @@ class ClientController extends BaseController
     // ---------- TRANSFERT ----------
     public function transfer()
     {
-        return view('client/transfer');
+        $user = $this->getCurrentUser();
+
+        return view('client/transfer', [
+            'balance' => $user['balance'],
+            'transfer_fees' => $this->getFeeRulesByCode('transfer'),
+        ]);
     }
 
     public function doTransfer()
@@ -168,5 +184,19 @@ class ClientController extends BaseController
         $transactions = $this->transactionModel->getUserHistory($user['id']);
 
         return view('client/history', ['transactions' => $transactions]);
+    }
+
+    private function getFeeRulesByCode(string $code): array
+    {
+        $operationType = $this->operationTypeModel->where('code', $code)->first();
+
+        if (!$operationType) {
+            return [];
+        }
+
+        return $this->feeRuleModel
+            ->where('operation_type_id', $operationType['id'])
+            ->orderBy('min_amount', 'ASC')
+            ->findAll();
     }
 }

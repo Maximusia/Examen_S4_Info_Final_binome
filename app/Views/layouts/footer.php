@@ -15,12 +15,14 @@
     <!-- Script personnalisé pour les interactions dynamiques -->
     <script>
         // Fermer automatiquement les alertes après 5 secondes
-        document.querySelectorAll('.alert').forEach(alert => {
-            const bsAlert = new bootstrap.Alert(alert);
-            setTimeout(() => {
-                bsAlert.close();
-            }, 5000);
-        });
+        if (typeof bootstrap !== 'undefined' && bootstrap.Alert) {
+            document.querySelectorAll('.alert').forEach(alert => {
+                const bsAlert = new bootstrap.Alert(alert);
+                setTimeout(() => {
+                    bsAlert.close();
+                }, 5000);
+            });
+        }
 
         // Fonction pour formater les montants en monnaie
         function formatMoney(amount) {
