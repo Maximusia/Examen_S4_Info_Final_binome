@@ -53,7 +53,7 @@ CREATE TABLE IF NOT EXISTS transactions (
 -- 1. Insérer les 3 types d'opérations
 INSERT INTO operation_types (code, name) VALUES 
 ('depos', 'Dépôt'),
-('retrait ', 'Retrait'),
+('retrait', 'Retrait'),
 ('transfer', 'Transfert');
 
 -- 2. Insérer les barèmes de frais pour le RETRAIT (operation_type_id = 2)
