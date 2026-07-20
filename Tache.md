@@ -9,7 +9,7 @@
 
 # Version 1 (v1)
 
-## Hasu Ma
+## Etudiant 1
 - Création de la base de données (base.sql)
 - Configuration de SQLite
 - Création des Models :
