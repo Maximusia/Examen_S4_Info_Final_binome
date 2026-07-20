@@ -27,13 +27,24 @@ class OperatorController extends BaseController
 
     public function dashboard()
     {
+        $withdrawalFees = $this->getFeeRulesByCode('retrait');
+        $transferFees = $this->getFeeRulesByCode('transfer');
+        $totalDeposits = $this->transactionModel->getTotalByType(1);
+        $totalWithdrawals = $this->transactionModel->getTotalByType(2);
+        $totalTransfers = $this->transactionModel->getTotalByType(3);
+
         $data = [
-            'totalUsers'        => $this->userModel->countAll(),
-            'totalTransactions' => $this->transactionModel->countAll(),
-            'totalFees'         => $this->transactionModel->getTotalFees(),
-            'totalDeposits'     => $this->transactionModel->getTotalByType(1),
-            'totalWithdrawals'  => $this->transactionModel->getTotalByType(2),
-            'totalTransfers'    => $this->transactionModel->getTotalByType(3),
+            'total_users'         => $this->userModel->countAll(),
+            'total_transactions'  => $this->transactionModel->countAll(),
+            'total_fees'          => $this->transactionModel->getTotalFees(),
+            'total_prefixes'      => $this->prefixModel->countAll(),
+            'total_fee_rules'     => $this->feeRuleModel->countAll(),
+            'withdrawals_count'   => count($withdrawalFees),
+            'transfers_count'     => count($transferFees),
+            'deposits_volume'     => $totalDeposits,
+            'withdrawals_volume'  => $totalWithdrawals,
+            'transfers_volume'    => $totalTransfers,
+            'total_volume'        => $totalDeposits + $totalWithdrawals + $totalTransfers,
         ];
 
         return view('operator/dashboard', $data);
@@ -42,8 +53,13 @@ class OperatorController extends BaseController
     // ---------- PREFIXES ----------
     public function prefixes()
     {
-        $prefixes = $this->prefixModel->findAll();
-        return view('operator/prefixes', ['prefixes' => $prefixes]);
+        $prefixes = $this->prefixModel->orderBy('prefix', 'ASC')->findAll();
+
+        return view('operator/prefixes', [
+            'prefixes' => $prefixes,
+            'total_prefixes' => count($prefixes),
+            'active_prefixes' => count($prefixes),
+        ]);
     }
 
     public function addPrefix()
@@ -51,16 +67,52 @@ class OperatorController extends BaseController
         $prefix = trim($this->request->getPost('prefix') ?? '');
         $prefix = preg_replace('/[^0-9]/', '', $prefix);
 
-        if (empty($prefix) || strlen($prefix) < 2) {
-            return redirect()->back()->with('error', 'Préfixe invalide (minimum 2 chiffres).');
+        if (!$this->isValidPrefixFormat($prefix)) {
+            return redirect()->back()->withInput()->with('error', 'Préfixe invalide. Utilisez 3 chiffres comme 033 ou 037.');
+        }
+
+        if ($this->prefixModel->where('prefix', $prefix)->first()) {
+            return redirect()->back()->withInput()->with('error', 'Ce préfixe existe déjà.');
         }
 
         $this->prefixModel->insert(['prefix' => $prefix]);
         return redirect()->to('/admin/prefixes')->with('success', "Préfixe {$prefix} ajouté.");
     }
 
+    public function updatePrefix($id)
+    {
+        $prefix = trim($this->request->getPost('prefix') ?? '');
+        $prefix = preg_replace('/[^0-9]/', '', $prefix);
+        $currentPrefix = $this->prefixModel->find($id);
+
+        if (!$currentPrefix) {
+            return redirect()->to('/admin/prefixes')->with('error', 'Préfixe introuvable.');
+        }
+
+        if (!$this->isValidPrefixFormat($prefix)) {
+            return redirect()->back()->withInput()->with('error', 'Préfixe invalide. Utilisez 3 chiffres comme 033 ou 037.');
+        }
+
+        $duplicate = $this->prefixModel
+            ->where('prefix', $prefix)
+            ->where('id !=', $id)
+            ->first();
+
+        if ($duplicate) {
+            return redirect()->back()->withInput()->with('error', 'Ce préfixe existe déjà.');
+        }
+
+        $this->prefixModel->update($id, ['prefix' => $prefix]);
+
+        return redirect()->to('/admin/prefixes')->with('success', "Préfixe {$prefix} mis à jour.");
+    }
+
     public function deletePrefix($id)
     {
+        if (!$this->prefixModel->find($id)) {
+            return redirect()->to('/admin/prefixes')->with('error', 'Préfixe introuvable.');
+        }
+
         $this->prefixModel->delete($id);
         return redirect()->to('/admin/prefixes')->with('success', 'Préfixe supprimé.');
     }
@@ -68,25 +120,23 @@ class OperatorController extends BaseController
     // ---------- FRAIS ----------
     public function fees()
     {
-        $operationTypes = $this->operationTypeModel->findAll();
-        $fees = [];
+        $withdrawalFees = $this->getFeeRulesByCode('retrait');
+        $transferFees = $this->getFeeRulesByCode('transfer');
 
-        foreach ($operationTypes as $type) {
-            if ($type['code'] === 'retrait' || $type['code'] === 'transfer') {
-                $fees[$type['code']] = $this->feeRuleModel
-                    ->where('operation_type_id', $type['id'])
-                    ->orderBy('min_amount', 'ASC')
-                    ->findAll();
-                $fees[$type['code'] . '_type_id'] = $type['id'];
-            }
-        }
-
-        return view('operator/fees', ['fees' => $fees]);
+        return view('operator/fees', [
+            'withdrawal_fees' => $withdrawalFees,
+            'transfer_fees' => $transferFees,
+        ]);
     }
 
     public function updateFee($id)
     {
         $newFee = (int) $this->request->getPost('fee');
+        $feeRule = $this->feeRuleModel->find($id);
+
+        if (!$feeRule) {
+            return redirect()->to('/admin/fees')->with('error', 'Barème introuvable.');
+        }
 
         if ($newFee < 0) {
             return redirect()->back()->with('error', 'Les frais ne peuvent pas être négatifs.');
@@ -101,5 +151,24 @@ class OperatorController extends BaseController
     {
         // Redirige vers le dashboard ou affiche une vue détaillée
         return redirect()->to('/admin/dashboard');
+    }
+
+    private function getFeeRulesByCode(string $code): array
+    {
+        $operationType = $this->operationTypeModel->where('code', $code)->first();
+
+        if (!$operationType) {
+            return [];
+        }
+
+        return $this->feeRuleModel
+            ->where('operation_type_id', $operationType['id'])
+            ->orderBy('min_amount', 'ASC')
+            ->findAll();
+    }
+
+    private function isValidPrefixFormat(string $prefix): bool
+    {
+        return (bool) preg_match('/^0\d{2}$/', $prefix);
     }
 }

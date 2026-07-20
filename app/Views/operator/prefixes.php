@@ -27,7 +27,7 @@
                 <?= csrf_field() ?>
 
                 <div class="row">
-                    <div class="col-md-6 mb-3">
+                    <div class="col-md-12 mb-3">
                         <label for="prefix" class="form-label">
                             <i class="fas fa-barcode"></i> Préfixe (ex: 033)
                         </label>
@@ -37,7 +37,7 @@
                             id="prefix" 
                             name="prefix" 
                             placeholder="Entrez le préfixe (ex: 033)"
-                            pattern="^0[3-7][3-7]$"
+                            pattern="^0\d{2}$"
                             maxlength="3"
                             required
                         >
@@ -47,19 +47,6 @@
                         <div class="invalid-feedback">
                             Veuillez entrer un préfixe valide (ex: 033)
                         </div>
-                    </div>
-
-                    <div class="col-md-6 mb-3">
-                        <label for="provider" class="form-label">
-                            <i class="fas fa-building"></i> Opérateur (optionnel)
-                        </label>
-                        <input 
-                            type="text" 
-                            class="form-control" 
-                            id="provider" 
-                            name="provider" 
-                            placeholder="Nom de l'opérateur (ex: Orange, MTN)"
-                        >
                     </div>
                 </div>
 
@@ -96,8 +83,8 @@
                     </div>
                     <div class="col-md-4">
                         <div>
-                            <h6 class="text-muted">Opérateurs</h6>
-                            <h3 class="text-info"><?= $total_providers ?? 0 ?></h3>
+                            <h6 class="text-muted">Exemples V1</h6>
+                            <h3 class="text-info">033 / 037</h3>
                         </div>
                     </div>
                 </div>
@@ -121,13 +108,10 @@
                                 <th style="width: 20%;">
                                     <i class="fas fa-barcode"></i> Préfixe
                                 </th>
-                                <th style="width: 30%;">
-                                    <i class="fas fa-building"></i> Opérateur
-                                </th>
-                                <th style="width: 20%;">
+                                <th style="width: 35%;">
                                     <i class="fas fa-phone"></i> Exemples
                                 </th>
-                                <th style="width: 20%;">
+                                <th style="width: 35%;">
                                     <i class="fas fa-cogs"></i> Actions
                                 </th>
                             </tr>
@@ -147,20 +131,9 @@
                                         </span>
                                     </td>
 
-                                    <!-- Opérateur -->
-                                    <td>
-                                        <?php if (!empty($prefix['provider'])): ?>
-                                            <span class="badge bg-info">
-                                                <?= $prefix['provider'] ?>
-                                            </span>
-                                        <?php else: ?>
-                                            <span class="text-muted small">Non spécifié</span>
-                                        <?php endif; ?>
-                                    </td>
-
                                     <!-- Exemples de numéros -->
                                     <td>
-                                        <small class="text-monospace">
+                                        <small class="font-monospace">
                                             <?= $prefix['prefix'] ?>1234567
                                         </small>
                                     </td>
@@ -206,22 +179,16 @@
                                                 <?= csrf_field() ?>
                                                 <div class="modal-body">
                                                     <div class="mb-3">
-                                                        <label for="prefixEdit" class="form-label">Préfixe</label>
+                                                        <label for="prefixEdit<?= $prefix['id'] ?? '' ?>" class="form-label">Préfixe</label>
                                                         <input 
                                                             type="text" 
                                                             class="form-control" 
+                                                            id="prefixEdit<?= $prefix['id'] ?? '' ?>"
                                                             name="prefix"
                                                             value="<?= $prefix['prefix'] ?? '' ?>"
+                                                            pattern="^0\d{2}$"
+                                                            maxlength="3"
                                                             required
-                                                        >
-                                                    </div>
-                                                    <div class="mb-3">
-                                                        <label for="providerEdit" class="form-label">Opérateur</label>
-                                                        <input 
-                                                            type="text" 
-                                                            class="form-control" 
-                                                            name="provider"
-                                                            value="<?= $prefix['provider'] ?? '' ?>"
                                                         >
                                                     </div>
                                                 </div>
@@ -267,13 +234,13 @@
             <div class="card-body small">
                 <p>
                     Les préfixes téléphoniques définissent les numéros autorisés à utiliser le service.
-                    Chaque préfixe est associé à un opérateur mobile.
+                    Ils sont utilisés à la connexion automatique des clients par numéro.
                 </p>
                 <p class="mb-0">
                     <strong>Exemples courants:</strong>
                     <ul class="small mb-0">
-                        <li>033 - Orange Cameroon</li>
-                        <li>037 - MTN Cameroon</li>
+                        <li>033</li>
+                        <li>037</li>
                     </ul>
                 </p>
             </div>

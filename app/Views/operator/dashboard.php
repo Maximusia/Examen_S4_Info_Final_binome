@@ -3,275 +3,193 @@
 <?= $this->section('content') ?>
 
 <div class="row mb-4">
-    <div class="col-md-12">
-        <h1 class="mb-2">
-            <i class="fas fa-chart-bar text-primary"></i> Tableau de bord Opérateur
-        </h1>
-        <p class="text-muted">Statistiques et gestion de la plateforme Mobile Money</p>
-    </div>
-</div>
-
-<!-- Indicateurs clés (KPI) -->
-<div class="row mb-4">
-    <!-- Total Utilisateurs -->
-    <div class="col-md-6 col-lg-3 mb-3">
-        <div class="card border-left-primary">
-            <div class="card-body">
-                <div class="d-flex justify-content-between align-items-center">
-                    <div>
-                        <div class="text-xs font-weight-bold text-primary text-uppercase mb-1">
-                            Total Utilisateurs
-                        </div>
-                        <div class="h3 mb-0 font-weight-bold">
-                            <?= $total_users ?? 0 ?>
-                        </div>
-                    </div>
-                    <i class="fas fa-users fa-2x text-primary opacity-50"></i>
-                </div>
+    <div class="col-lg-8">
+        <div class="card border-0 shadow-sm operator-hero">
+            <div class="card-body p-4 p-lg-5 text-white">
+                <span class="badge bg-light text-dark mb-3">Espace opérateur</span>
+                <h1 class="display-6 mb-3">Pilotage Mobile Money</h1>
+                <p class="mb-0 text-white-50">
+                    Gestion des préfixes, des barèmes de frais et des indicateurs de performance de la plateforme.
+                </p>
             </div>
         </div>
     </div>
-
-    <!-- Total Transactions -->
-    <div class="col-md-6 col-lg-3 mb-3">
-        <div class="card border-left-success">
-            <div class="card-body">
-                <div class="d-flex justify-content-between align-items-center">
-                    <div>
-                        <div class="text-xs font-weight-bold text-success text-uppercase mb-1">
-                            Total Transactions
-                        </div>
-                        <div class="h3 mb-0 font-weight-bold">
-                            <?= $total_transactions ?? 0 ?>
-                        </div>
-                    </div>
-                    <i class="fas fa-exchange-alt fa-2x text-success opacity-50"></i>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- Revenu Frais -->
-    <div class="col-md-6 col-lg-3 mb-3">
-        <div class="card border-left-danger">
-            <div class="card-body">
-                <div class="d-flex justify-content-between align-items-center">
-                    <div>
-                        <div class="text-xs font-weight-bold text-danger text-uppercase mb-1">
-                            Revenu Frais
-                        </div>
-                        <div class="h3 mb-0 font-weight-bold">
-                            <?= number_format($total_fees ?? 0, 0, ',', ' ') ?> FCFA
-                        </div>
-                    </div>
-                    <i class="fas fa-coins fa-2x text-danger opacity-50"></i>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- Volume Total -->
-    <div class="col-md-6 col-lg-3 mb-3">
-        <div class="card border-left-warning">
-            <div class="card-body">
-                <div class="d-flex justify-content-between align-items-center">
-                    <div>
-                        <div class="text-xs font-weight-bold text-warning text-uppercase mb-1">
-                            Volume Total
-                        </div>
-                        <div class="h3 mb-0 font-weight-bold">
-                            <?= number_format($total_volume ?? 0, 0, ',', ' ') ?> FCFA
-                        </div>
-                    </div>
-                    <i class="fas fa-chart-pie fa-2x text-warning opacity-50"></i>
-                </div>
+    <div class="col-lg-4">
+        <div class="card shadow-sm border-0 h-100">
+            <div class="card-body p-4 bg-light">
+                <h5 class="mb-3"><i class="fas fa-bullseye text-primary"></i> Vue rapide</h5>
+                <div class="d-flex justify-content-between mb-2"><span>Clients</span><strong><?= $total_users ?? 0 ?></strong></div>
+                <div class="d-flex justify-content-between mb-2"><span>Transactions</span><strong><?= $total_transactions ?? 0 ?></strong></div>
+                <div class="d-flex justify-content-between mb-2"><span>Préfixes</span><strong><?= $total_prefixes ?? 0 ?></strong></div>
+                <div class="d-flex justify-content-between"><span>Barèmes</span><strong><?= $total_fee_rules ?? 0 ?></strong></div>
             </div>
         </div>
     </div>
 </div>
 
-<!-- Statistiques détaillées par type d'opération -->
-<div class="row mb-4">
-    <div class="col-md-12">
-        <h5 class="mb-3">
-            <i class="fas fa-bar-chart"></i> Détail par type d'opération
-        </h5>
-    </div>
-
-    <!-- Dépôts -->
-    <div class="col-md-4 col-lg-3 mb-3">
-        <div class="card">
+<div class="row g-3 mb-4">
+    <div class="col-md-6 col-xl-3">
+        <div class="card shadow-sm border-0 stat-card stat-blue h-100 text-white">
             <div class="card-body">
-                <h6 class="card-title text-success">
-                    <i class="fas fa-arrow-down"></i> Dépôts
-                </h6>
-                <p class="card-text">
-                    <span class="badge bg-success">
-                        <?= $deposits_count ?? 0 ?> transactions
-                    </span>
-                </p>
-                <div class="h5 text-success mb-0">
-                    <?= number_format($deposits_volume ?? 0, 0, ',', ' ') ?> FCFA
+                <div class="d-flex justify-content-between align-items-start">
+                    <div>
+                        <div class="small text-uppercase opacity-75">Comptes clients</div>
+                        <div class="display-6 fw-bold mb-0"><?= $total_users ?? 0 ?></div>
+                    </div>
+                    <i class="fas fa-users fa-2x"></i>
                 </div>
-                <small class="text-muted">Aucuns frais</small>
+                <div class="small mt-3 opacity-75">Situation des comptes enregistrés.</div>
             </div>
         </div>
     </div>
-
-    <!-- Retraits -->
-    <div class="col-md-4 col-lg-3 mb-3">
-        <div class="card">
+    <div class="col-md-6 col-xl-3">
+        <div class="card shadow-sm border-0 stat-card stat-green h-100 text-white">
             <div class="card-body">
-                <h6 class="card-title text-warning">
-                    <i class="fas fa-arrow-up"></i> Retraits
-                </h6>
-                <p class="card-text">
-                    <span class="badge bg-warning">
-                        <?= $withdrawals_count ?? 0 ?> transactions
-                    </span>
-                </p>
-                <div class="h5 text-warning mb-0">
-                    <?= number_format($withdrawals_volume ?? 0, 0, ',', ' ') ?> FCFA
+                <div class="d-flex justify-content-between align-items-start">
+                    <div>
+                        <div class="small text-uppercase opacity-75">Transactions</div>
+                        <div class="display-6 fw-bold mb-0"><?= $total_transactions ?? 0 ?></div>
+                    </div>
+                    <i class="fas fa-exchange-alt fa-2x"></i>
                 </div>
-                <small class="text-muted">
-                    Frais: <?= number_format($withdrawals_fees ?? 0, 0, ',', ' ') ?> FCFA
-                </small>
+                <div class="small mt-3 opacity-75">Dépôts, retraits et transferts.</div>
             </div>
         </div>
     </div>
-
-    <!-- Transferts -->
-    <div class="col-md-4 col-lg-3 mb-3">
-        <div class="card">
+    <div class="col-md-6 col-xl-3">
+        <div class="card shadow-sm border-0 stat-card stat-orange h-100 text-white">
             <div class="card-body">
-                <h6 class="card-title text-info">
-                    <i class="fas fa-exchange-alt"></i> Transferts
-                </h6>
-                <p class="card-text">
-                    <span class="badge bg-info">
-                        <?= $transfers_count ?? 0 ?> transactions
-                    </span>
-                </p>
-                <div class="h5 text-info mb-0">
-                    <?= number_format($transfers_volume ?? 0, 0, ',', ' ') ?> FCFA
+                <div class="d-flex justify-content-between align-items-start">
+                    <div>
+                        <div class="small text-uppercase opacity-75">Gains</div>
+                        <div class="display-6 fw-bold mb-0"><?= number_format($total_fees ?? 0, 0, ',', ' ') ?> Ar</div>
+                    </div>
+                    <i class="fas fa-coins fa-2x"></i>
                 </div>
-                <small class="text-muted">
-                    Frais: <?= number_format($transfers_fees ?? 0, 0, ',', ' ') ?> FCFA
-                </small>
+                <div class="small mt-3 opacity-75">Revenus liés aux frais.</div>
             </div>
         </div>
     </div>
-
-    <!-- Bilan Frais -->
-    <div class="col-md-4 col-lg-3 mb-3">
-        <div class="card bg-light">
+    <div class="col-md-6 col-xl-3">
+        <div class="card shadow-sm border-0 stat-card stat-dark h-100 text-white">
             <div class="card-body">
-                <h6 class="card-title">
-                    <i class="fas fa-balance-scale"></i> Bilan
-                </h6>
-                <div class="small mb-2">
-                    <strong>Retraits:</strong>
-                    <span class="text-danger">
-                        -<?= number_format($withdrawals_fees ?? 0, 0, ',', ' ') ?> FCFA
-                    </span>
+                <div class="d-flex justify-content-between align-items-start">
+                    <div>
+                        <div class="small text-uppercase opacity-75">Barèmes actifs</div>
+                        <div class="display-6 fw-bold mb-0"><?= $total_fee_rules ?? 0 ?></div>
+                    </div>
+                    <i class="fas fa-sliders-h fa-2x"></i>
                 </div>
-                <div class="small mb-2">
-                    <strong>Transferts:</strong>
-                    <span class="text-danger">
-                        -<?= number_format($transfers_fees ?? 0, 0, ',', ' ') ?> FCFA
-                    </span>
+                <div class="small mt-3 opacity-75">Tranches configurées et modifiables.</div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row g-4 mb-4">
+    <div class="col-lg-7">
+        <div class="card shadow-sm border-0 h-100">
+            <div class="card-header bg-white border-0 pb-0">
+                <h5 class="mb-0"><i class="fas fa-phone text-primary"></i> Préfixes autorisés</h5>
+            </div>
+            <div class="card-body">
+                <p class="text-muted mb-3">Les comptes clients sont validés uniquement si leur numéro commence par un préfixe enregistré.</p>
+                <div class="row g-3">
+                    <div class="col-md-4">
+                        <div class="p-3 rounded bg-primary-subtle">
+                            <div class="small text-muted">Préfixes</div>
+                            <div class="h4 mb-0"><?= $total_prefixes ?? 0 ?></div>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="p-3 rounded bg-success-subtle">
+                            <div class="small text-muted">Exemples</div>
+                            <div class="h4 mb-0">033 / 037</div>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="p-3 rounded bg-warning-subtle">
+                            <a href="<?= base_url('/admin/prefixes') ?>" class="btn btn-warning w-100">Gérer les préfixes</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-lg-5">
+        <div class="card shadow-sm border-0 h-100">
+            <div class="card-header bg-white border-0 pb-0">
+                <h5 class="mb-0"><i class="fas fa-percentage text-success"></i> Barèmes de frais</h5>
+            </div>
+            <div class="card-body">
+                <div class="d-flex justify-content-between mb-2"><span>Retraits</span><strong><?= $withdrawals_count ?? 0 ?></strong></div>
+                <div class="d-flex justify-content-between mb-3"><span>Transferts</span><strong><?= $transfers_count ?? 0 ?></strong></div>
+                <a href="<?= base_url('/admin/fees') ?>" class="btn btn-outline-success w-100">Modifier les barèmes</a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row g-4">
+    <div class="col-lg-6">
+        <div class="card shadow-sm border-0 h-100">
+            <div class="card-header bg-white border-0 pb-0">
+                <h5 class="mb-0"><i class="fas fa-wallet text-danger"></i> Situation des comptes</h5>
+            </div>
+            <div class="card-body">
+                <div class="row g-3 text-center">
+                    <div class="col-6">
+                        <div class="p-3 rounded bg-light">
+                            <div class="small text-muted">Dépôts</div>
+                            <div class="h4 mb-0 text-success"><?= number_format($deposits_volume ?? 0, 0, ',', ' ') ?> Ar</div>
+                        </div>
+                    </div>
+                    <div class="col-6">
+                        <div class="p-3 rounded bg-light">
+                            <div class="small text-muted">Retraits</div>
+                            <div class="h4 mb-0 text-warning"><?= number_format($withdrawals_volume ?? 0, 0, ',', ' ') ?> Ar</div>
+                        </div>
+                    </div>
+                    <div class="col-6">
+                        <div class="p-3 rounded bg-light">
+                            <div class="small text-muted">Transferts</div>
+                            <div class="h4 mb-0 text-info"><?= number_format($transfers_volume ?? 0, 0, ',', ' ') ?> Ar</div>
+                        </div>
+                    </div>
+                    <div class="col-6">
+                        <div class="p-3 rounded bg-light">
+                            <div class="small text-muted">Volume global</div>
+                            <div class="h4 mb-0 text-primary"><?= number_format($total_volume ?? 0, 0, ',', ' ') ?> Ar</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-lg-6">
+        <div class="card shadow-sm border-0 h-100">
+            <div class="card-header bg-white border-0 pb-0">
+                <h5 class="mb-0"><i class="fas fa-bolt text-secondary"></i> Actions de gestion</h5>
+            </div>
+            <div class="card-body">
+                <div class="d-grid gap-2">
+                    <a href="<?= base_url('/admin/prefixes') ?>" class="btn btn-outline-primary">Gérer les préfixes autorisés</a>
+                    <a href="<?= base_url('/admin/fees') ?>" class="btn btn-outline-success">Modifier les frais de retrait et de transfert</a>
+                    <a href="<?= base_url('/admin/dashboard') ?>" class="btn btn-outline-dark">Actualiser le tableau de bord</a>
                 </div>
                 <hr>
-                <div class="h6 text-success mb-0">
-                    <i class="fas fa-profit-loss"></i>
-                    Revenu: <?= number_format($total_fees ?? 0, 0, ',', ' ') ?> FCFA
-                </div>
+                <p class="mb-0 text-muted small">Cet espace est distinct du côté client: il sert au pilotage, aux gains et à la configuration des règles.</p>
             </div>
         </div>
     </div>
 </div>
 
-<!-- Panneau de gestion rapide -->
-<div class="row mb-4">
-    <div class="col-md-12">
-        <h5 class="mb-3">
-            <i class="fas fa-sliders-h"></i> Gestion rapide
-        </h5>
-    </div>
-
-    <div class="col-md-6 col-lg-3 mb-3">
-        <a href="<?= base_url('/admin/prefixes') ?>" class="btn btn-outline-primary btn-lg w-100 py-4">
-            <i class="fas fa-list fa-2x d-block mb-2"></i>
-            <span>Gérer les préfixes</span>
-            <small class="d-block mt-2">
-                <?= $total_prefixes ?? 0 ?> préfixes
-            </small>
-        </a>
-    </div>
-
-    <div class="col-md-6 col-lg-3 mb-3">
-        <a href="<?= base_url('/admin/fees') ?>" class="btn btn-outline-success btn-lg w-100 py-4">
-            <i class="fas fa-percentage fa-2x d-block mb-2"></i>
-            <span>Configurer les frais</span>
-            <small class="d-block mt-2">
-                <?= $total_fee_rules ?? 0 ?> barèmes
-            </small>
-        </a>
-    </div>
-
-    <div class="col-md-6 col-lg-3 mb-3">
-        <a href="<?= base_url('/admin/statistics') ?>" class="btn btn-outline-info btn-lg w-100 py-4">
-            <i class="fas fa-chart-line fa-2x d-block mb-2"></i>
-            <span>Voir les statistiques</span>
-            <small class="d-block mt-2">
-                Analytiques détaillées
-            </small>
-        </a>
-    </div>
-
-    <div class="col-md-6 col-lg-3 mb-3">
-        <a href="<?= base_url('/admin/dashboard') ?>" class="btn btn-outline-warning btn-lg w-100 py-4">
-            <i class="fas fa-refresh fa-2x d-block mb-2"></i>
-            <span>Actualiser</span>
-            <small class="d-block mt-2">
-                Dernière mise à jour
-            </small>
-        </a>
-    </div>
-</div>
-
-<!-- Avertissements et informations -->
-<div class="row">
-    <div class="col-md-12">
-        <div class="alert alert-info" role="alert">
-            <i class="fas fa-info-circle"></i>
-            <strong>Information:</strong> 
-            Les statistiques sont mises à jour en temps réel. 
-            Les modifications aux préfixes et frais sont appliquées immédiatement.
-        </div>
-    </div>
-</div>
-
-<!-- Style personnalisé pour les cartes KPI -->
 <style>
-    .border-left-primary {
-        border-left: 4px solid #007bff !important;
-    }
-    .border-left-success {
-        border-left: 4px solid #28a745 !important;
-    }
-    .border-left-danger {
-        border-left: 4px solid #dc3545 !important;
-    }
-    .border-left-warning {
-        border-left: 4px solid #ffc107 !important;
-    }
-    .text-xs {
-        font-size: 0.75rem;
-    }
-    .opacity-50 {
-        opacity: 0.5;
-    }
+    .operator-hero { background: linear-gradient(135deg, #0f172a 0%, #1d4ed8 100%); }
+    .stat-blue { background: linear-gradient(135deg, #2563eb, #1d4ed8); }
+    .stat-green { background: linear-gradient(135deg, #059669, #047857); }
+    .stat-orange { background: linear-gradient(135deg, #d97706, #b45309); }
+    .stat-dark { background: linear-gradient(135deg, #334155, #0f172a); }
 </style>
 
 <?= $this->endSection() ?>

@@ -26,7 +26,7 @@
         function formatMoney(amount) {
             return new Intl.NumberFormat('fr-FR', {
                 style: 'currency',
-                currency: 'XAF', // Francs CFA
+                currency: 'MGA', // Ariary malgache
                 minimumFractionDigits: 0,
                 maximumFractionDigits: 0
             }).format(amount);

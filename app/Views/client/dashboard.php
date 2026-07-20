@@ -19,7 +19,7 @@
                     <div>
                         <p class="card-text mb-0">Votre solde</p>
                         <h3 class="card-title mt-2">
-                            <?= number_format($balance ?? 0, 0, ',', ' ') ?> FCFA
+                            <?= number_format($balance ?? 0, 0, ',', ' ') ?> Ar
                         </h3>
                     </div>
                     <div>
@@ -53,7 +53,7 @@
                 <div class="d-flex justify-content-between align-items-center">
                     <div>
                         <p class="card-text mb-0">Frais totaux</p>
-                        <h3 class="card-title mt-2"><?= number_format($total_fees ?? 0, 0, ',', ' ') ?> FCFA</h3>
+                        <h3 class="card-title mt-2"><?= number_format($total_fees ?? 0, 0, ',', ' ') ?> Ar</h3>
                     </div>
                     <div>
                         <i class="fas fa-money-bill-wave" style="font-size: 3rem; opacity: 0.5;"></i>
@@ -144,10 +144,10 @@
                                     </span>
                                 </td>
                                 <td>
-                                    <strong><?= number_format($transaction['amount'] ?? 0, 0, ',', ' ') ?> FCFA</strong>
+                                    <strong><?= number_format($transaction['amount'] ?? 0, 0, ',', ' ') ?> Ar</strong>
                                 </td>
                                 <td>
-                                    <?= number_format($transaction['fee'] ?? 0, 0, ',', ' ') ?> FCFA
+                                    <?= number_format($transaction['fee'] ?? 0, 0, ',', ' ') ?> Ar
                                 </td>
                                 <td>
                                     <?php

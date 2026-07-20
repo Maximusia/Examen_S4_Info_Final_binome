@@ -72,7 +72,7 @@
             <div class="card-body">
                 <h6 class="card-title text-muted">Montant total</h6>
                 <h3 class="card-text text-success">
-                    <?= number_format($total_amount ?? 0, 0, ',', ' ') ?> FCFA
+                    <?= number_format($total_amount ?? 0, 0, ',', ' ') ?> Ar
                 </h3>
             </div>
         </div>
@@ -82,7 +82,7 @@
             <div class="card-body">
                 <h6 class="card-title text-muted">Frais payés</h6>
                 <h3 class="card-text text-danger">
-                    <?= number_format($total_fees ?? 0, 0, ',', ' ') ?> FCFA
+                    <?= number_format($total_fees ?? 0, 0, ',', ' ') ?> Ar
                 </h3>
             </div>
         </div>
@@ -143,7 +143,7 @@
                                     <!-- Montant -->
                                     <td>
                                         <strong class="text-primary">
-                                            <?= number_format($transaction['amount'] ?? 0, 0, ',', ' ') ?> FCFA
+                                            <?= number_format($transaction['amount'] ?? 0, 0, ',', ' ') ?> Ar
                                         </strong>
                                     </td>
 
@@ -151,7 +151,7 @@
                                     <td>
                                         <?php if (($transaction['fee'] ?? 0) > 0): ?>
                                             <span class="text-danger">
-                                                -<?= number_format($transaction['fee'] ?? 0, 0, ',', ' ') ?> FCFA
+                                                -<?= number_format($transaction['fee'] ?? 0, 0, ',', ' ') ?> Ar
                                             </span>
                                         <?php else: ?>
                                             <span class="text-success">Gratuit</span>
@@ -208,11 +208,11 @@
                                                 <div class="row mb-3">
                                                     <div class="col-6">
                                                         <small class="text-muted">Montant</small>
-                                                        <p><strong><?= number_format($transaction['amount'] ?? 0, 0, ',', ' ') ?> FCFA</strong></p>
+                                                        <p><strong><?= number_format($transaction['amount'] ?? 0, 0, ',', ' ') ?> Ar</strong></p>
                                                     </div>
                                                     <div class="col-6">
                                                         <small class="text-muted">Frais</small>
-                                                        <p><strong><?= number_format($transaction['fee'] ?? 0, 0, ',', ' ') ?> FCFA</strong></p>
+                                                        <p><strong><?= number_format($transaction['fee'] ?? 0, 0, ',', ' ') ?> Ar</strong></p>
                                                     </div>
                                                 </div>
                                                 <div class="mb-3">
@@ -277,41 +277,8 @@
         <a href="<?= base_url('/dashboard') ?>" class="btn btn-secondary">
             <i class="fas fa-arrow-left"></i> Retour au tableau de bord
         </a>
-        <button class="btn btn-outline-primary" id="exportBtn">
-            <i class="fas fa-download"></i> Exporter en CSV
-        </button>
     </div>
 </div>
-
-<script>
-    // Fonction pour exporter les données en CSV
-    document.getElementById('exportBtn')?.addEventListener('click', function() {
-        const rows = Array.from(document.querySelectorAll('table tbody tr'));
-        let csv = 'Date,Type,Montant,Frais,Statut\n';
-        
-        rows.forEach(row => {
-            const cells = row.querySelectorAll('td');
-            if (cells.length >= 5) {
-                const date = cells[0].innerText.trim();
-                const type = cells[1].innerText.trim();
-                const amount = cells[2].innerText.trim();
-                const fee = cells[3].innerText.trim();
-                const status = cells[4].innerText.trim();
-                csv += `"${date}","${type}","${amount}","${fee}","${status}"\n`;
-            }
-        });
-        
-        const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
-        const link = document.createElement('a');
-        const url = URL.createObjectURL(blob);
-        link.setAttribute('href', url);
-        link.setAttribute('download', `historique_${new Date().getTime()}.csv`);
-        link.style.visibility = 'hidden';
-        document.body.appendChild(link);
-        link.click();
-        document.body.removeChild(link);
-    });
-</script>
 
 <?= $this->endSection() ?>
 <?= $this->include('layouts/footer') ?>

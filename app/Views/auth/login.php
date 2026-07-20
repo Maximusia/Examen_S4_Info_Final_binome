@@ -27,7 +27,9 @@
                             class="form-control" 
                             id="phone_number" 
                             name="phone_number" 
-                            placeholder="Entrez votre numéro (ex: 0331234567)"
+                            placeholder="Entrez votre numéro (client: 0331234567)
+                            admin : 0330000000
+                            "
                             pattern="^03[3-7][0-9]{7}$"
                             required
                         >
@@ -36,24 +38,6 @@
                         </small>
                         <div class="invalid-feedback">
                             Veuillez entrer un numéro valide (format: 03XXXXXXXX)
-                        </div>
-                    </div>
-
-                    <!-- Champ Mot de passe -->
-                    <div class="mb-4">
-                        <label for="password" class="form-label">
-                            <i class="fas fa-lock"></i> Mot de passe
-                        </label>
-                        <input 
-                            type="password" 
-                            class="form-control" 
-                            id="password" 
-                            name="password" 
-                            placeholder="Entrez votre mot de passe"
-                            required
-                        >
-                        <div class="invalid-feedback">
-                            Veuillez entrer votre mot de passe
                         </div>
                     </div>
 
@@ -67,7 +51,8 @@
                 <div class="mt-4 p-3 bg-light rounded">
                     <p class="small mb-0">
                         <i class="fas fa-info-circle text-info"></i>
-                        <strong>Première visite?</strong> Utilisez le numéro de test: <code>0331234567</code>
+                        <strong>Première visite?</strong> Utilisez le numéro de test: <code> (client: 0331234567)
+                            admin : 0330000000</code>
                     </p>
                 </div>
             </div>
@@ -79,7 +64,7 @@
                 <i class="fas fa-shield-alt"></i> Sécurité
             </h6>
             <ul class="small text-muted list-unstyled">
-                <li><i class="fas fa-check-circle text-success"></i> Connexion sécurisée par mot de passe</li>
+                <li><i class="fas fa-check-circle text-success"></i> Connexion sécurisée par numéro de téléphone</li>
                 <li><i class="fas fa-check-circle text-success"></i> Données chiffrées</li>
                 <li><i class="fas fa-check-circle text-success"></i> Accès 24h/24 7j/7</li>
             </ul>

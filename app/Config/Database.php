@@ -29,7 +29,8 @@ class Database extends Config
         'hostname'     => 'localhost',
         'username'     => '',
         'password'     => '',
-        'database'     => WRITEPATH . 'database.db',
+        // Base SQLite réellement remplie par le projet
+        'database'     => ROOTPATH . 'WRITEPATH' . DIRECTORY_SEPARATOR . 'database.db',
         'DBDriver'     => 'SQLite3',
         'DBPrefix'     => '',
         'pConnect'     => false,

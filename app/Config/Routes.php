@@ -44,6 +44,7 @@ $routes->group('admin', ['filter' => 'operator'], function($routes) {
     $routes->get('dashboard', 'OperatorController::dashboard');
     $routes->get('prefixes', 'OperatorController::prefixes');
     $routes->post('prefixes/add', 'OperatorController::addPrefix');
+    $routes->post('prefixes/update/(:num)', 'OperatorController::updatePrefix/$1');
     $routes->post('prefixes/delete/(:num)', 'OperatorController::deletePrefix/$1');
     $routes->get('fees', 'OperatorController::fees');
     $routes->post('fees/update/(:num)', 'OperatorController::updateFee/$1');

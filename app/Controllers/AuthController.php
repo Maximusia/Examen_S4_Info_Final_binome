@@ -7,9 +7,15 @@ use App\Models\PrefixModel;
 
 class AuthController extends BaseController
 {
+    private const OPERATOR_PHONE = '0330000000';
+
     public function index()
     {
         if (session()->get('logged_in')) {
+            if (session()->get('is_operator')) {
+                return redirect()->to('/admin/dashboard');
+            }
+
             return redirect()->to('/dashboard');
         }
 
@@ -49,9 +55,12 @@ class AuthController extends BaseController
             'user_id'   => $user['id'],
             'logged_in' => true,
             'phone_number' => $user['phone_number'],
+            'is_operator' => $user['phone_number'] === self::OPERATOR_PHONE,
         ]);
 
-        return redirect()->to('/dashboard')->with('success', 'Bienvenue ' . $user['phone_number']);
+        $redirectTo = $user['phone_number'] === self::OPERATOR_PHONE ? '/admin/dashboard' : '/dashboard';
+
+        return redirect()->to($redirectTo)->with('success', 'Bienvenue ' . $user['phone_number']);
     }
 
     public function logout()

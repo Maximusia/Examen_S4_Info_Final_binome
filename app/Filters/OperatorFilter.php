@@ -8,6 +8,8 @@ use CodeIgniter\Filters\FilterInterface;
 
 class OperatorFilter implements FilterInterface
 {
+    private const OPERATOR_PHONE = '0330000000';
+
     public function before(RequestInterface $request, $arguments = null)
     {
         // Vérifie que l'utilisateur est connecté
@@ -15,13 +17,16 @@ class OperatorFilter implements FilterInterface
             return redirect()->to('/auth/login')->with('error', 'Veuillez vous connecter.');
         }
 
-        // Récupère l'utilisateur
-        $userModel = model('App\Models\UserModel');
-        $user = $userModel->find(session()->get('user_id'));
+        $isOperator = (bool) session()->get('is_operator');
 
-        // Ici on considère que l'admin a le numéro 0330000000
-        // Tu peux aussi ajouter un champ 'role' dans la table users
-        if (!$user || $user['phone_number'] !== '0330000000') {
+        if (!$isOperator) {
+            $userModel = model('App\Models\UserModel');
+            $user = $userModel->find(session()->get('user_id'));
+
+            $isOperator = $user && $user['phone_number'] === self::OPERATOR_PHONE;
+        }
+
+        if (!$isOperator) {
             return redirect()->to('/dashboard')->with('error', 'Accès réservé à l\'administrateur.');
         }
     }
