@@ -1,0 +1,23 @@
+# Ignorer la base de donnees SQLite
+*.db
+*.sqlite
+*.sqlite3
+writable/database.db
+writable/*.db
+
+# Ignorer les fichiers temporaires de codeigniter4
+writable/cache/
+writable/logs/
+writable/session/
+writable/debugbar/
+
+# Ignorer les fichiers de configuration sensibles
+.env
+
+# Ignorer les dependances
+vendor/
+node_modules/
+
+# Ignorer les fichiers systeme
+.DS_Store
+Thumbs.db
