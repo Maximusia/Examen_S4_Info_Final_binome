@@ -110,6 +110,12 @@ class TransactionModel extends Model
         return $result['amount'] ?? 0;
     }
 
+    public function getFeesByType($typeId)
+    {
+        $result = $this->where('operation_type_id', $typeId)->selectSum('fee')->get()->getRowArray();
+        return $result['fee'] ?? 0;
+    }
+
     public function getInternalTransferFees()
     {
         $result = $this->where('operation_type_id', 3)
@@ -150,7 +156,7 @@ class TransactionModel extends Model
              operators.name AS operator_name,
              SUM(transactions.amount + transactions.included_withdrawal_fee) AS total_amount,
              SUM(transactions.external_commission) AS total_commission,
-             SUM(transactions.total_fee) AS total_fee',
+             SUM(transactions.amount + transactions.included_withdrawal_fee + transactions.external_commission) AS total_to_settle',
             false
         )
             ->join('users receiver', 'receiver.id = transactions.receiver_user_id', 'left')
@@ -188,6 +194,13 @@ class TransactionModel extends Model
         return $this->where('batch_reference', $batchReference)
             ->orderBy('created_at', 'ASC')
             ->findAll();
+    }
+
+    public function countTransfersByExternal($isExternal): int
+    {
+        return $this->where('operation_type_id', 3)
+            ->where('is_external', $isExternal ? 1 : 0)
+            ->countAllResults();
     }
 
     public function getFeesByOperatorType($isOwnOperator)

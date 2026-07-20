@@ -2,21 +2,21 @@
 
 namespace App\Controllers;
 
-use App\Models\PrefixModel;
-use App\Models\OperatorModel;
 use App\Models\FeeRuleModel;
-use App\Models\UserModel;
-use App\Models\TransactionModel;
 use App\Models\OperationTypeModel;
+use App\Models\OperatorModel;
+use App\Models\PrefixModel;
+use App\Models\TransactionModel;
+use App\Models\UserModel;
 
 class OperatorController extends BaseController
 {
-    private $prefixModel;
-    private $operatorModel;
-    private $feeRuleModel;
-    private $userModel;
-    private $transactionModel;
-    private $operationTypeModel;
+    private PrefixModel $prefixModel;
+    private OperatorModel $operatorModel;
+    private FeeRuleModel $feeRuleModel;
+    private UserModel $userModel;
+    private TransactionModel $transactionModel;
+    private OperationTypeModel $operationTypeModel;
 
     public function __construct()
     {
@@ -36,115 +36,213 @@ class OperatorController extends BaseController
         $totalWithdrawals = $this->transactionModel->getTotalByType(2);
         $totalTransfers = $this->transactionModel->getTotalByType(3);
 
-        $data = [
-            'total_users'         => $this->userModel->countAll(),
-            'total_transactions'  => $this->transactionModel->countAll(),
-            'total_fees'          => $this->transactionModel->getTotalFees(),
-            'total_prefixes'      => $this->prefixModel->countAll(),
-            'total_fee_rules'     => $this->feeRuleModel->countAll(),
-            'withdrawals_count'   => count($withdrawalFees),
-            'transfers_count'     => count($transferFees),
-            'deposits_volume'     => $totalDeposits,
-            'withdrawals_volume'  => $totalWithdrawals,
-            'transfers_volume'    => $totalTransfers,
-            'total_volume'        => $totalDeposits + $totalWithdrawals + $totalTransfers,
-        ];
-
-        return view('operator/dashboard', $data);
+        return view('operator/dashboard', [
+            'total_users' => $this->userModel->countAll(),
+            'total_transactions' => $this->transactionModel->countAll(),
+            'total_fees' => $this->transactionModel->getTotalFees(),
+            'total_prefixes' => $this->prefixModel->countAll(),
+            'total_fee_rules' => $this->feeRuleModel->countAll(),
+            'withdrawals_count' => count($withdrawalFees),
+            'transfers_count' => count($transferFees),
+            'deposits_volume' => $totalDeposits,
+            'withdrawals_volume' => $totalWithdrawals,
+            'transfers_volume' => $totalTransfers,
+            'total_volume' => $totalDeposits + $totalWithdrawals + $totalTransfers,
+        ]);
     }
 
-    // ---------- PREFIXES ----------
+    public function operators()
+    {
+        $ownOperator = $this->operatorModel->getOwnOperator();
+        $externalOperators = $this->operatorModel->getExternalOperators();
+
+        return view('operator/operators', [
+            'own_operator' => $ownOperator,
+            'external_operators' => $externalOperators,
+            'total_operators' => ($ownOperator ? 1 : 0) + count($externalOperators),
+            'external_operator_count' => count($externalOperators),
+        ]);
+    }
+
+    public function addOperator()
+    {
+        $name = trim((string) ($this->request->getPost('name') ?? ''));
+        $commissionPercent = $this->request->getPost('commission_percent');
+
+        if ($name === '') {
+            return redirect()->back()->withInput()->with('error', 'Le nom de l\'operateur est obligatoire.');
+        }
+
+        if (!is_numeric($commissionPercent) || (float) $commissionPercent < 0) {
+            return redirect()->back()->withInput()->with('error', 'Le pourcentage de commission doit etre positif ou nul.');
+        }
+
+        if ($this->operatorModel->where('name', $name)->first()) {
+            return redirect()->back()->withInput()->with('error', 'Cet operateur existe deja.');
+        }
+
+        $id = $this->operatorModel->createExternalOperator([
+            'name' => $name,
+            'commission_percent' => $commissionPercent,
+        ]);
+
+        if (!$id) {
+            return redirect()->back()->withInput()->with('error', 'Impossible de creer cet operateur.');
+        }
+
+        return redirect()->to('/admin/operators')->with('success', 'Operateur externe ajoute.');
+    }
+
+    public function updateOperator($id)
+    {
+        $name = trim((string) ($this->request->getPost('name') ?? ''));
+        $commissionPercent = $this->request->getPost('commission_percent');
+
+        if ($name === '') {
+            return redirect()->back()->withInput()->with('error', 'Le nom de l\'operateur est obligatoire.');
+        }
+
+        if (!is_numeric($commissionPercent) || (float) $commissionPercent < 0) {
+            return redirect()->back()->withInput()->with('error', 'Le pourcentage de commission doit etre positif ou nul.');
+        }
+
+        if ($this->operatorModel->where('name', $name)->where('id !=', $id)->first()) {
+            return redirect()->back()->withInput()->with('error', 'Ce nom est deja utilise.');
+        }
+
+        if (!$this->operatorModel->updateExternalOperator($id, [
+            'name' => $name,
+            'commission_percent' => $commissionPercent,
+        ])) {
+            return redirect()->back()->withInput()->with('error', 'Impossible de mettre a jour cet operateur.');
+        }
+
+        return redirect()->to('/admin/operators')->with('success', 'Operateur mis a jour.');
+    }
+
+    public function deleteOperator($id)
+    {
+        $operator = $this->operatorModel->findOperatorById($id);
+
+        if (!$operator) {
+            return redirect()->to('/admin/operators')->with('error', 'Operateur introuvable.');
+        }
+
+        if ((int) ($operator['is_own_operator'] ?? 0) === 1) {
+            return redirect()->to('/admin/operators')->with('error', 'Impossible de supprimer notre propre operateur.');
+        }
+
+        $transactionCount = $this->transactionModel
+            ->where('receiver_operator_id', $id)
+            ->countAllResults();
+
+        if ($transactionCount > 0) {
+            return redirect()->to('/admin/operators')->with('error', 'Cet operateur est reference par des transactions.');
+        }
+
+        if (!$this->operatorModel->deleteExternalOperator($id)) {
+            return redirect()->to('/admin/operators')->with('error', 'Suppression impossible.');
+        }
+
+        return redirect()->to('/admin/operators')->with('success', 'Operateur externe supprime.');
+    }
+
     public function prefixes()
     {
-        $prefixes = $this->prefixModel->getOwnOperatorPrefixes();
+        $operators = $this->operatorModel->findAll();
+        $groupedPrefixes = $this->groupPrefixesByOperator($operators);
+        $ownOperator = $this->operatorModel->getOwnOperator();
+        $ownPrefixCount = $ownOperator ? count($this->prefixModel->getPrefixesByOperator($ownOperator['id'])) : 0;
 
         return view('operator/prefixes', [
-            'prefixes' => $prefixes,
-            'total_prefixes' => count($prefixes),
-            'active_prefixes' => count($prefixes),
+            'operators' => $operators,
+            'grouped_prefixes' => $groupedPrefixes,
+            'own_operator' => $ownOperator,
+            'own_prefix_count' => $ownPrefixCount,
+            'total_prefixes' => $this->prefixModel->countAll(),
         ]);
     }
 
     public function addPrefix()
     {
-        $prefix = trim($this->request->getPost('prefix') ?? '');
-        $prefix = preg_replace('/[^0-9]/', '', $prefix);
+        $prefix = trim((string) ($this->request->getPost('prefix') ?? ''));
+        $operatorId = (int) ($this->request->getPost('operator_id') ?: 0);
 
         if (!$this->isValidPrefixFormat($prefix)) {
-            return redirect()->back()->withInput()->with('error', 'Préfixe invalide. Utilisez 3 chiffres comme 033 ou 037.');
+            return redirect()->back()->withInput()->with('error', 'Prefixe invalide. Utilisez 3 chiffres.');
         }
 
-        if ($this->prefixModel->where('prefix', $prefix)->first()) {
-            return redirect()->back()->withInput()->with('error', 'Ce préfixe existe déjà.');
+        $operator = $this->operatorModel->findOperatorById($operatorId);
+        if (!$operator) {
+            return redirect()->back()->withInput()->with('error', 'Operateur introuvable.');
         }
 
-        $ownOperator = $this->operatorModel->getOwnOperator();
-        if (!$ownOperator) {
-            return redirect()->back()->withInput()->with('error', 'Opérateur principal introuvable.');
+        if (!$this->prefixModel->addPrefixToOperator($operatorId, $prefix)) {
+            return redirect()->back()->withInput()->with('error', 'Ce prefixe existe deja ou ne peut pas etre ajoute.');
         }
 
-        if (!$this->prefixModel->addPrefixToOperator($ownOperator['id'], $prefix)) {
-            return redirect()->back()->withInput()->with('error', 'Impossible d\'ajouter ce préfixe.');
-        }
-        return redirect()->to('/admin/prefixes')->with('success', "Préfixe {$prefix} ajouté.");
+        return redirect()->to('/admin/prefixes')->with('success', 'Prefixe ajoute.');
     }
 
     public function updatePrefix($id)
     {
-        $prefix = trim($this->request->getPost('prefix') ?? '');
-        $prefix = preg_replace('/[^0-9]/', '', $prefix);
         $currentPrefix = $this->prefixModel->find($id);
-
         if (!$currentPrefix) {
-            return redirect()->to('/admin/prefixes')->with('error', 'Préfixe introuvable.');
+            return redirect()->to('/admin/prefixes')->with('error', 'Prefixe introuvable.');
         }
+
+        $prefix = trim((string) ($this->request->getPost('prefix') ?? ''));
+        $operatorId = (int) ($this->request->getPost('operator_id') ?: ($currentPrefix['operator_id'] ?? 0));
 
         if (!$this->isValidPrefixFormat($prefix)) {
-            return redirect()->back()->withInput()->with('error', 'Préfixe invalide. Utilisez 3 chiffres comme 033 ou 037.');
+            return redirect()->back()->withInput()->with('error', 'Prefixe invalide. Utilisez 3 chiffres.');
         }
 
-        if ($this->prefixModel
-            ->where('prefix', $prefix)
-            ->where('id !=', $id)
-            ->first()) {
-            return redirect()->back()->withInput()->with('error', 'Ce préfixe existe déjà.');
+        if (!$this->operatorModel->findOperatorById($operatorId)) {
+            return redirect()->back()->withInput()->with('error', 'Operateur introuvable.');
         }
 
-        $currentPrefix = $this->prefixModel->find($id);
-        $ownOperator = $this->operatorModel->getOwnOperator();
-        if (!$ownOperator) {
-            return redirect()->back()->withInput()->with('error', 'Opérateur principal introuvable.');
+        if ($this->prefixModel->where('prefix', $prefix)->where('id !=', $id)->first()) {
+            return redirect()->back()->withInput()->with('error', 'Ce prefixe existe deja.');
         }
 
         if (!$this->prefixModel->update($id, [
             'prefix' => $prefix,
-            'operator_id' => $currentPrefix['operator_id'] ?? $ownOperator['id'],
+            'operator_id' => $operatorId,
         ])) {
-            return redirect()->back()->withInput()->with('error', 'Impossible de mettre à jour ce préfixe.');
+            return redirect()->back()->withInput()->with('error', 'Impossible de mettre a jour ce prefixe.');
         }
 
-        return redirect()->to('/admin/prefixes')->with('success', "Préfixe {$prefix} mis à jour.");
+        return redirect()->to('/admin/prefixes')->with('success', 'Prefixe mis a jour.');
     }
 
     public function deletePrefix($id)
     {
-        if (!$this->prefixModel->find($id)) {
-            return redirect()->to('/admin/prefixes')->with('error', 'Préfixe introuvable.');
+        $prefix = $this->prefixModel->find($id);
+        if (!$prefix) {
+            return redirect()->to('/admin/prefixes')->with('error', 'Prefixe introuvable.');
         }
 
-        $this->prefixModel->deletePrefix($id);
-        return redirect()->to('/admin/prefixes')->with('success', 'Préfixe supprimé.');
+        $ownOperator = $this->operatorModel->getOwnOperator();
+        if ($ownOperator && (int) $prefix['operator_id'] === (int) $ownOperator['id']) {
+            $ownPrefixCount = count($this->prefixModel->getPrefixesByOperator($ownOperator['id']));
+            if ($ownPrefixCount <= 1) {
+                return redirect()->to('/admin/prefixes')->with('error', 'Impossible de supprimer le dernier prefixe interne.');
+            }
+        }
+
+        if (!$this->prefixModel->deletePrefix($id)) {
+            return redirect()->to('/admin/prefixes')->with('error', 'Suppression impossible.');
+        }
+
+        return redirect()->to('/admin/prefixes')->with('success', 'Prefixe supprime.');
     }
 
-    // ---------- FRAIS ----------
     public function fees()
     {
-        $withdrawalFees = $this->getFeeRulesByCode('retrait');
-        $transferFees = $this->getFeeRulesByCode('transfer');
-
         return view('operator/fees', [
-            'withdrawal_fees' => $withdrawalFees,
-            'transfer_fees' => $transferFees,
+            'withdrawal_fees' => $this->getFeeRulesByCode('retrait'),
+            'transfer_fees' => $this->getFeeRulesByCode('transfer'),
         ]);
     }
 
@@ -154,22 +252,38 @@ class OperatorController extends BaseController
         $feeRule = $this->feeRuleModel->find($id);
 
         if (!$feeRule) {
-            return redirect()->to('/admin/fees')->with('error', 'Barème introuvable.');
+            return redirect()->to('/admin/fees')->with('error', 'Bareme introuvable.');
         }
 
         if ($newFee < 0) {
-            return redirect()->back()->with('error', 'Les frais ne peuvent pas être négatifs.');
+            return redirect()->back()->with('error', 'Les frais ne peuvent pas etre negatifs.');
         }
 
         $this->feeRuleModel->update($id, ['fee' => $newFee]);
-        return redirect()->to('/admin/fees')->with('success', 'Frais mis à jour.');
+        return redirect()->to('/admin/fees')->with('success', 'Frais mis a jour.');
     }
 
-    // ---------- STATISTIQUES ----------
     public function statistics()
     {
-        // Redirige vers le dashboard ou affiche une vue détaillée
-        return redirect()->to('/admin/dashboard');
+        $internalTransferFees = $this->transactionModel->getInternalTransferFees();
+        $withdrawalFees = $this->transactionModel->getFeesByType(2);
+        $externalTransferBaseFees = $this->transactionModel->getExternalTransferBaseFees();
+        $externalCommissions = $this->transactionModel->getExternalCommissions();
+        $amountsByOperator = $this->transactionModel->getAmountsByExternalOperator();
+        $settlementByOperator = $this->transactionModel->getSettlementByExternalOperator();
+        $externalTransfersCount = $this->transactionModel->countTransfersByExternal(true);
+        $internalTransfersCount = $this->transactionModel->countTransfersByExternal(false);
+
+        return view('operator/statistics', [
+            'withdrawal_fees' => $withdrawalFees,
+            'internal_transfer_fees' => $internalTransferFees,
+            'external_transfer_base_fees' => $externalTransferBaseFees,
+            'external_commissions' => $externalCommissions,
+            'amounts_by_operator' => $amountsByOperator,
+            'settlement_by_operator' => $settlementByOperator,
+            'external_transfers_count' => $externalTransfersCount,
+            'internal_transfers_count' => $internalTransfersCount,
+        ]);
     }
 
     private function getFeeRulesByCode(string $code): array
@@ -188,6 +302,27 @@ class OperatorController extends BaseController
 
     private function isValidPrefixFormat(string $prefix): bool
     {
-        return (bool) preg_match('/^0\d{2}$/', $prefix);
+        return (bool) preg_match('/^\d{3}$/', $prefix);
+    }
+
+    /**
+     * @param array<int, array<string, mixed>> $operators
+     * @return array<int, array<int, array<string, mixed>>>
+     */
+    private function groupPrefixesByOperator(array $operators): array
+    {
+        $grouped = [];
+
+        foreach ($operators as $operator) {
+            $grouped[$operator['id']] = [];
+        }
+
+        $prefixes = $this->prefixModel->orderBy('prefix', 'ASC')->findAll();
+        foreach ($prefixes as $prefix) {
+            $operatorId = (int) $prefix['operator_id'];
+            $grouped[$operatorId][] = $prefix;
+        }
+
+        return $grouped;
     }
 }

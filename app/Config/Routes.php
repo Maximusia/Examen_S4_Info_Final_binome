@@ -8,40 +8,32 @@ use CodeIgniter\Router\RouteCollection;
  * @var RouteCollection $routes
  */
 
-// Redirection vers login
 $routes->get('/', 'AuthController::index');
 
-// ========== AUTH ==========
-$routes->group('auth', function($routes) {
+$routes->group('auth', function ($routes) {
     $routes->get('login', 'AuthController::index');
     $routes->post('login', 'AuthController::login');
     $routes->get('logout', 'AuthController::logout');
 });
 
-// ========== CLIENT (protégé par auth) ==========
-$routes->group('', ['filter' => 'auth'], function($routes) {
-    $routes->get('dashboard', 'ClientController::dashboard');
-    $routes->get('balance', 'ClientController::balance');
-
-    // Dépôt
-    $routes->get('deposit', 'ClientController::deposit');
-    $routes->post('deposit', 'ClientController::doDeposit');
-
-    // Retrait
-    $routes->get('withdraw', 'ClientController::withdraw');
-    $routes->post('withdraw', 'ClientController::doWithdraw');
-
-    // Transfert
-    $routes->get('transfer', 'ClientController::transfer');
-    $routes->post('transfer', 'ClientController::doTransfer');
-
-    // Historique
-    $routes->get('history', 'ClientController::history');
+$routes->group('', ['filter' => 'auth'], function ($routes) {
+    $routes->get('dashboard', 'TransactionController::dashboard');
+    $routes->get('balance', 'TransactionController::balance');
+    $routes->get('deposit', 'TransactionController::deposit');
+    $routes->post('deposit', 'TransactionController::doDeposit');
+    $routes->get('withdraw', 'TransactionController::withdraw');
+    $routes->post('withdraw', 'TransactionController::doWithdraw');
+    $routes->get('transfer', 'TransactionController::transfer');
+    $routes->post('transfer', 'TransactionController::doTransfer');
+    $routes->get('history', 'TransactionController::history');
 });
 
-// ========== OPÉRATEUR (protégé par auth + operator) ==========
-$routes->group('admin', ['filter' => 'operator'], function($routes) {
+$routes->group('admin', ['filter' => 'operator'], function ($routes) {
     $routes->get('dashboard', 'OperatorController::dashboard');
+    $routes->get('operators', 'OperatorController::operators');
+    $routes->post('operators/add', 'OperatorController::addOperator');
+    $routes->post('operators/update/(:num)', 'OperatorController::updateOperator/$1');
+    $routes->post('operators/delete/(:num)', 'OperatorController::deleteOperator/$1');
     $routes->get('prefixes', 'OperatorController::prefixes');
     $routes->post('prefixes/add', 'OperatorController::addPrefix');
     $routes->post('prefixes/update/(:num)', 'OperatorController::updatePrefix/$1');

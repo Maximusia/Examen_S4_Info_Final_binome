@@ -105,7 +105,11 @@ class ClientController extends BaseController
             return redirect()->back()->with('error', 'Montant invalide.');
         }
 
-        $fee = calculate_fee('retrait', $amount);
+        try {
+            $fee = calculate_fee('retrait', $amount);
+        } catch (\Throwable $e) {
+            return redirect()->back()->with('error', $e->getMessage());
+        }
         $total = $amount + $fee;
 
         if ($user['balance'] < $total) {
@@ -170,8 +174,15 @@ class ClientController extends BaseController
     {
         $user = $this->getCurrentUser();
         $transactions = $this->transactionModel->getUserHistory($user['id']);
+        $totalAmount = array_sum(array_map(static fn ($row) => (int) ($row['amount'] ?? 0), $transactions));
+        $totalFees = array_sum(array_map(static fn ($row) => (int) ($row['fee'] ?? 0), $transactions));
 
-        return view('client/history', ['transactions' => $transactions]);
+        return view('client/history', [
+            'transactions' => $transactions,
+            'total_transactions' => count($transactions),
+            'total_amount' => $totalAmount,
+            'total_fees' => $totalFees,
+        ]);
     }
 
     private function getFeeRulesByCode(string $code): array
