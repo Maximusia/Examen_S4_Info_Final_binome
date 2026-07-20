@@ -2,79 +2,61 @@
 
 namespace App\Controllers;
 
-use App\Core\Controller;
 use App\Models\UserModel;
 use App\Models\PrefixModel;
 
-class AuthController extends Controller
+class AuthController extends BaseController
 {
-    // Affiche le formulaire de connexion
     public function index()
     {
-        // Si déjà connecté, redirige vers le dashboard
-        if ($this->session->isLoggedIn()) {
-            $this->redirect('/dashboard');
+        if (session()->get('logged_in')) {
+            return redirect()->to('/dashboard');
         }
-        
-        $this->render('auth/login');
+
+        return view('auth/login');
     }
 
-    // Traite l'authentification
     public function login()
     {
-        $phone = $_POST['phone'] ?? '';
-        $phone = trim($phone);
+        $phone = trim($this->request->getPost('phone') ?? '');
 
-        // 1. Vérifier que le numéro n'est pas vide
         if (empty($phone)) {
-            $_SESSION['error'] = "Veuillez entrer un numéro de téléphone.";
-            $this->redirect('/auth/login');
-            return;
+            return redirect()->back()->with('error', 'Veuillez entrer un numéro.');
         }
 
-        // 2. Vérifier que le numéro commence par un préfixe autorisé
+        // Vérifier le préfixe
         $prefixModel = new PrefixModel();
         $isValid = $prefixModel->isValidPrefix($phone);
-        
+
         if (!$isValid) {
-            $_SESSION['error'] = "Ce numéro de téléphone n'est pas autorisé. Utilisez un préfixe valide (033, 037, ...).";
-            $this->redirect('/auth/login');
-            return;
+            return redirect()->back()->with('error', 'Numéro non autorisé. Utilisez 033 ou 037.');
         }
 
-        // 3. Chercher l'utilisateur ou le créer
+        // Chercher ou créer l'utilisateur
         $userModel = new UserModel();
-        $user = $userModel->findByPhone($phone);
-        
+        $user = $userModel->where('phone_number', $phone)->first();
+
         if (!$user) {
-            // Créer un nouvel utilisateur avec solde à 0
             $userId = $userModel->insert([
                 'phone_number' => $phone,
-                'balance' => 0
+                'balance'      => 0,
             ]);
-            
-            if (!$userId) {
-                $_SESSION['error'] = "Erreur lors de la création du compte. Veuillez réessayer.";
-                $this->redirect('/auth/login');
-                return;
-            }
-            
-            // Récupérer l'utilisateur fraîchement créé
             $user = $userModel->find($userId);
         }
 
-        // 4. Ouvrir la session
-        $this->session->login($user['id']);
-        
-        // 5. Rediriger vers le dashboard
-        $_SESSION['success'] = "Bienvenue " . $user['phone_number'] . " !";
-        $this->redirect('/dashboard');
+        // Ouvrir la session
+        session()->set([
+            'user_id'   => $user['id'],
+            'logged_in' => true,
+            'phone'     => $user['phone_number'],
+        ]);
+
+        return redirect()->to('/dashboard')->with('success', 'Bienvenue ' . $user['phone_number']);
     }
 
-    // Déconnexion
     public function logout()
     {
-        $this->session->logout();
-        $this->redirect('/auth/login');
+        session()->destroy();
+        return redirect()->to('/auth/login');
     }
 }

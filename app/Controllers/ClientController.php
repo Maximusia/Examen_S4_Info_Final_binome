@@ -2,208 +2,148 @@
 
 namespace App\Controllers;
 
-use App\Core\Controller;
 use App\Models\UserModel;
 use App\Models\TransactionModel;
 
-class ClientController extends Controller
+class ClientController extends BaseController
 {
     private $userModel;
     private $transactionModel;
 
     public function __construct()
     {
-        parent::__construct();
-        
-        // Vérifie que l'utilisateur est connecté
-        if (!$this->session->isLoggedIn()) {
-            $this->redirect('/auth/login');
-        }
-        
         $this->userModel = new UserModel();
         $this->transactionModel = new TransactionModel();
     }
 
-    // Dashboard - Affiche le solde et les menus
+    private function getCurrentUser()
+    {
+        $userId = session()->get('user_id');
+        $user = $this->userModel->find($userId);
+        if (!$user) {
+            session()->destroy();
+            return redirect()->to('/auth/login');
+        }
+        return $user;
+    }
+
     public function dashboard()
     {
-        $userId = $this->session->getUserId();
-        $user = $this->userModel->find($userId);
-        
-        if (!$user) {
-            $this->session->logout();
-            $this->redirect('/auth/login');
-        }
+        $user = $this->getCurrentUser();
+        $stats = $this->transactionModel->getUserStats($user['id']);
 
-        // Récupère les statistiques rapides (optionnel)
-        $stats = $this->transactionModel->getUserStats($userId);
-
-        $this->render('client/dashboard', [
-            'user' => $user,
+        return view('client/dashboard', [
+            'user'    => $user,
             'balance' => $user['balance'],
-            'stats' => $stats
+            'stats'   => $stats,
         ]);
     }
 
-    // Affiche le solde (peut être juste une redirection vers dashboard)
     public function balance()
     {
-        $this->redirect('/dashboard');
+        return redirect()->to('/dashboard');
     }
 
-    // Historique des transactions
-    public function history()
-    {
-        $userId = $this->session->getUserId();
-        $transactions = $this->transactionModel->getUserHistory($userId);
-
-        $this->render('client/history', [
-            'transactions' => $transactions
-        ]);
-    }
-
-    // Formulaire de dépôt
+    // ---------- DEPOT ----------
     public function deposit()
     {
-        $this->render('client/deposit');
+        return view('client/deposit');
     }
 
-    // Traitement du dépôt
     public function doDeposit()
     {
-        $userId = $this->session->getUserId();
-        $amount = (int) ($_POST['amount'] ?? 0);
+        $user = $this->getCurrentUser();
+        $amount = (int) $this->request->getPost('amount');
 
-        // Vérifier le montant
         if ($amount <= 0) {
-            $_SESSION['error'] = "Le montant doit être supérieur à 0.";
-            $this->redirect('/deposit');
-            return;
+            return redirect()->back()->with('error', 'Montant invalide.');
         }
 
-        // Ajouter au solde
-        $user = $this->userModel->find($userId);
         $newBalance = $user['balance'] + $amount;
-        $this->userModel->update($userId, ['balance' => $newBalance]);
+        $this->userModel->update($user['id'], ['balance' => $newBalance]);
 
-        // Sauvegarder la transaction
         $this->transactionModel->insert([
-            'user_id' => $userId,
+            'user_id'           => $user['id'],
             'operation_type_id' => 1, // Dépôt
-            'amount' => $amount,
-            'fee' => 0,
-            'receiver_user_id' => null
+            'amount'            => $amount,
+            'fee'               => 0,
+            'receiver_user_id'  => null,
         ]);
 
-        $_SESSION['success'] = "Dépôt de " . number_format($amount) . " Ar effectué avec succès ! Nouveau solde : " . number_format($newBalance) . " Ar";
-        $this->redirect('/dashboard');
+        return redirect()->to('/dashboard')->with('success', "Dépôt de {$amount} Ar effectué. Nouveau solde : {$newBalance} Ar");
     }
 
-    // Formulaire de retrait
+    // ---------- RETRAIT ----------
     public function withdraw()
     {
-        $this->render('client/withdraw');
+        return view('client/withdraw');
     }
 
-    // Traitement du retrait
     public function doWithdraw()
     {
-        $userId = $this->session->getUserId();
-        $amount = (int) ($_POST['amount'] ?? 0);
+        $user = $this->getCurrentUser();
+        $amount = (int) $this->request->getPost('amount');
 
-        // Vérifier le montant
         if ($amount <= 0) {
-            $_SESSION['error'] = "Le montant doit être supérieur à 0.";
-            $this->redirect('/withdraw');
-            return;
+            return redirect()->back()->with('error', 'Montant invalide.');
         }
 
-        // Calculer les frais
-        $fee = calculate_fee('withdraw', $amount);
+        $fee = calculate_fee('retrait', $amount);
         $total = $amount + $fee;
 
-        // Vérifier le solde
-        $user = $this->userModel->find($userId);
         if ($user['balance'] < $total) {
-            $_SESSION['error'] = "Solde insuffisant. Vous avez besoin de " . number_format($total) . " Ar (montant + frais de " . number_format($fee) . " Ar).";
-            $this->redirect('/withdraw');
-            return;
+            return redirect()->back()->with('error', "Solde insuffisant. Frais : {$fee} Ar. Total : {$total} Ar");
         }
 
-        // Déduire du solde
         $newBalance = $user['balance'] - $total;
-        $this->userModel->update($userId, ['balance' => $newBalance]);
+        $this->userModel->update($user['id'], ['balance' => $newBalance]);
 
-        // Sauvegarder la transaction
         $this->transactionModel->insert([
-            'user_id' => $userId,
+            'user_id'           => $user['id'],
             'operation_type_id' => 2, // Retrait
-            'amount' => $amount,
-            'fee' => $fee,
-            'receiver_user_id' => null
+            'amount'            => $amount,
+            'fee'               => $fee,
+            'receiver_user_id'  => null,
         ]);
 
-        $_SESSION['success'] = "Retrait de " . number_format($amount) . " Ar effectué. Frais : " . number_format($fee) . " Ar. Nouveau solde : " . number_format($newBalance) . " Ar";
-        $this->redirect('/dashboard');
+        return redirect()->to('/dashboard')->with('success', "Retrait de {$amount} Ar effectué. Frais : {$fee} Ar. Nouveau solde : {$newBalance} Ar");
     }
 
-    // Formulaire de transfert
+    // ---------- TRANSFERT ----------
     public function transfer()
     {
-        $this->render('client/transfer');
+        return view('client/transfer');
     }
 
-    // Traitement du transfert
     public function doTransfer()
     {
-        $userId = $this->session->getUserId();
-        $receiverPhone = trim($_POST['receiver_phone'] ?? '');
-        $amount = (int) ($_POST['amount'] ?? 0);
+        $sender = $this->getCurrentUser();
+        $receiverPhone = trim($this->request->getPost('receiver_phone') ?? '');
+        $amount = (int) $this->request->getPost('amount');
 
-        // Vérifier le destinataire
-        if (empty($receiverPhone)) {
-            $_SESSION['error'] = "Veuillez entrer un numéro de destinataire.";
-            $this->redirect('/transfer');
-            return;
+        if (empty($receiverPhone) || $amount <= 0) {
+            return redirect()->back()->with('error', 'Données invalides.');
         }
 
-        // Vérifier que le destinataire n'est pas l'expéditeur
-        $user = $this->userModel->find($userId);
-        if ($user['phone_number'] === $receiverPhone) {
-            $_SESSION['error'] = "Vous ne pouvez pas vous transférer de l'argent à vous-même.";
-            $this->redirect('/transfer');
-            return;
+        if ($sender['phone_number'] === $receiverPhone) {
+            return redirect()->back()->with('error', 'Vous ne pouvez pas vous transférer à vous-même.');
         }
 
-        // Vérifier que le destinataire existe
-        $receiver = $this->userModel->findByPhone($receiverPhone);
+        $receiver = $this->userModel->where('phone_number', $receiverPhone)->first();
         if (!$receiver) {
-            $_SESSION['error'] = "Le numéro de destinataire n'existe pas dans le système.";
-            $this->redirect('/transfer');
-            return;
+            return redirect()->back()->with('error', 'Destinataire introuvable.');
         }
 
-        // Vérifier le montant
-        if ($amount <= 0) {
-            $_SESSION['error'] = "Le montant doit être supérieur à 0.";
-            $this->redirect('/transfer');
-            return;
-        }
-
-        // Calculer les frais
         $fee = calculate_fee('transfer', $amount);
         $total = $amount + $fee;
 
-        // Vérifier le solde de l'expéditeur
-        if ($user['balance'] < $total) {
-            $_SESSION['error'] = "Solde insuffisant. Vous avez besoin de " . number_format($total) . " Ar (montant + frais de " . number_format($fee) . " Ar).";
-            $this->redirect('/transfer');
-            return;
+        if ($sender['balance'] < $total) {
+            return redirect()->back()->with('error', "Solde insuffisant. Frais : {$fee} Ar. Total : {$total} Ar");
         }
 
         // Débiter l'expéditeur
-        $newSenderBalance = $user['balance'] - $total;
-        $this->userModel->update($userId, ['balance' => $newSenderBalance]);
+        $newSenderBalance = $sender['balance'] - $total;
+        $this->userModel->update($sender['id'], ['balance' => $newSenderBalance]);
 
         // Créditer le destinataire
         $newReceiverBalance = $receiver['balance'] + $amount;
@@ -211,14 +151,22 @@ class ClientController extends Controller
 
         // Sauvegarder la transaction
         $this->transactionModel->insert([
-            'user_id' => $userId,
+            'user_id'           => $sender['id'],
             'operation_type_id' => 3, // Transfert
-            'amount' => $amount,
-            'fee' => $fee,
-            'receiver_user_id' => $receiver['id']
+            'amount'            => $amount,
+            'fee'               => $fee,
+            'receiver_user_id'  => $receiver['id'],
         ]);
 
-        $_SESSION['success'] = "Transfert de " . number_format($amount) . " Ar à " . $receiverPhone . " effectué. Frais : " . number_format($fee) . " Ar. Nouveau solde : " . number_format($newSenderBalance) . " Ar";
-        $this->redirect('/dashboard');
+        return redirect()->to('/dashboard')->with('success', "Transfert de {$amount} Ar à {$receiverPhone} effectué. Frais : {$fee} Ar.");
+    }
+
+    // ---------- HISTORIQUE ----------
+    public function history()
+    {
+        $user = $this->getCurrentUser();
+        $transactions = $this->transactionModel->getUserHistory($user['id']);
+
+        return view('client/history', ['transactions' => $transactions]);
     }
 }

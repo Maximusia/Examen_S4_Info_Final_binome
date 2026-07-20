@@ -1,0 +1,261 @@
+<?= $this->extend('layouts/header') ?>
+
+<?= $this->section('content') ?>
+
+<div class="row mb-4">
+    <div class="col-md-12">
+        <h1 class="mb-2">
+            <i class="fas fa-arrow-up text-warning"></i> Effectuer un retrait
+        </h1>
+        <p class="text-muted">Retirez de l'argent de votre compte Mobile Money</p>
+    </div>
+</div>
+
+<div class="row">
+    <!-- Formulaire de retrait -->
+    <div class="col-md-8 col-lg-6">
+        <div class="card shadow">
+            <div class="card-body p-4">
+                <form action="<?= base_url('/withdraw') ?>" method="post" class="needs-validation" novalidate>
+                    <?= csrf_field() ?>
+
+                    <!-- Solde actuel -->
+                    <div class="alert alert-info mb-4">
+                        <i class="fas fa-wallet"></i> 
+                        <strong>Solde disponible:</strong> 
+                        <?= number_format($balance ?? 0, 0, ',', ' ') ?> FCFA
+                    </div>
+
+                    <!-- Champ Montant -->
+                    <div class="mb-4">
+                        <label for="amount" class="form-label">
+                            <i class="fas fa-money-bill"></i> Montant à retirer (FCFA)
+                        </label>
+                        <div class="input-group">
+                            <span class="input-group-text">
+                                <i class="fas fa-currency-circle"></i>
+                            </span>
+                            <input 
+                                type="number" 
+                                class="form-control" 
+                                id="amount" 
+                                name="amount" 
+                                placeholder="Entrez le montant"
+                                min="100"
+                                max="<?= $balance ?? 0 ?>"
+                                required
+                            >
+                        </div>
+                        <small class="form-text text-muted d-block mt-2">
+                            <i class="fas fa-info-circle"></i> 
+                            Montant minimum: 100 FCFA | Maximum: <?= number_format($balance ?? 0, 0, ',', ' ') ?> FCFA
+                        </small>
+                        <div class="invalid-feedback">
+                            Veuillez entrer un montant valide
+                        </div>
+                    </div>
+
+                    <!-- Sélection du bénéficiaire -->
+                    <div class="mb-4">
+                        <label for="beneficiary_type" class="form-label">
+                            <i class="fas fa-user-check"></i> Type de bénéficiaire
+                        </label>
+                        <select class="form-select" id="beneficiary_type" name="beneficiary_type" required>
+                            <option value="">-- Sélectionnez un type --</option>
+                            <option value="agent">Agent de retrait</option>
+                            <option value="bank">Compte bancaire</option>
+                            <option value="airtime">Recharge téléphonique</option>
+                        </select>
+                        <div class="invalid-feedback">
+                            Veuillez sélectionner un type de bénéficiaire
+                        </div>
+                    </div>
+
+                    <!-- Numéro du bénéficiaire -->
+                    <div class="mb-4">
+                        <label for="beneficiary" class="form-label">
+                            <i class="fas fa-phone"></i> Numéro/Compte du bénéficiaire
+                        </label>
+                        <input 
+                            type="text" 
+                            class="form-control" 
+                            id="beneficiary" 
+                            name="beneficiary" 
+                            placeholder="Numéro du bénéficiaire"
+                            required
+                        >
+                        <div class="invalid-feedback">
+                            Veuillez entrer un numéro valide
+                        </div>
+                    </div>
+
+                    <!-- Récapitulatif avec frais -->
+                    <div class="alert alert-light border mb-4">
+                        <h6 class="mb-3">
+                            <i class="fas fa-file-alt"></i> Récapitulatif
+                        </h6>
+                        <div class="d-flex justify-content-between mb-2">
+                            <span>Montant demandé:</span>
+                            <strong id="amount_display">0 FCFA</strong>
+                        </div>
+                        <div class="d-flex justify-content-between mb-2">
+                            <span>Frais de retrait:</span>
+                            <strong id="fee_display" class="text-danger">0 FCFA</strong>
+                        </div>
+                        <hr>
+                        <div class="d-flex justify-content-between">
+                            <strong>Vous recevrez:</strong>
+                            <strong id="total_display" class="text-success">0 FCFA</strong>
+                        </div>
+                        <small class="text-muted d-block mt-2">
+                            <i class="fas fa-info-circle"></i> 
+                            Les frais seront déduits du montant demandé
+                        </small>
+                    </div>
+
+                    <!-- Alerte frais -->
+                    <div id="fee_warning" class="alert alert-warning d-none mb-4">
+                        <i class="fas fa-exclamation-triangle"></i>
+                        <strong>Attention!</strong> Des frais s'appliquent à ce retrait.
+                    </div>
+
+                    <!-- Boutons -->
+                    <div class="d-grid gap-2 mb-3">
+                        <button type="submit" class="btn btn-warning btn-lg">
+                            <i class="fas fa-check-circle"></i> Confirmer le retrait
+                        </button>
+                    </div>
+                    <a href="<?= base_url('/dashboard') ?>" class="btn btn-secondary w-100">
+                        <i class="fas fa-arrow-left"></i> Retour au tableau de bord
+                    </a>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Informations sur les frais -->
+    <div class="col-md-4 col-lg-6">
+        <div class="card bg-light mb-3">
+            <div class="card-header bg-warning text-dark">
+                <h6 class="mb-0">
+                    <i class="fas fa-percentage"></i> Barème des frais
+                </h6>
+            </div>
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table table-sm table-borderless">
+                        <thead class="table-light">
+                            <tr>
+                                <th>Montant</th>
+                                <th>Frais</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>100 - 1 000 FCFA</td>
+                                <td><strong>50 FCFA</strong></td>
+                            </tr>
+                            <tr>
+                                <td>1 001 - 5 000 FCFA</td>
+                                <td><strong>50 FCFA</strong></td>
+                            </tr>
+                            <tr>
+                                <td>5 001 - 10 000 FCFA</td>
+                                <td><strong>100 FCFA</strong></td>
+                            </tr>
+                            <tr>
+                                <td>10 001 - 25 000 FCFA</td>
+                                <td><strong>200 FCFA</strong></td>
+                            </tr>
+                            <tr>
+                                <td>25 001 - 50 000 FCFA</td>
+                                <td><strong>400 FCFA</strong></td>
+                            </tr>
+                            <tr>
+                                <td>50 001 - 100 000 FCFA</td>
+                                <td><strong>800 FCFA</strong></td>
+                            </tr>
+                            <tr>
+                                <td>100 001 - 250 000 FCFA</td>
+                                <td><strong>1 500 FCFA</strong></td>
+                            </tr>
+                            <tr>
+                                <td>250 001 - 500 000 FCFA</td>
+                                <td><strong>1 500 FCFA</strong></td>
+                            </tr>
+                            <tr>
+                                <td>500 001 - 1 000 000 FCFA</td>
+                                <td><strong>2 500 FCFA</strong></td>
+                            </tr>
+                            <tr>
+                                <td>1 000 001+ FCFA</td>
+                                <td><strong>3 000 FCFA</strong></td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <div class="card bg-info text-white">
+            <div class="card-body">
+                <h6 class="card-title">
+                    <i class="fas fa-phone"></i> Support client
+                </h6>
+                <p class="small mb-0">
+                    Pour toute question sur les frais ou le processus de retrait, contactez-nous au <strong>+237 XXX XXX XXX</strong>
+                </p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Script pour calculer les frais en temps réel -->
+<script>
+    const fees = [
+        { min: 100, max: 1000, fee: 50 },
+        { min: 1001, max: 5000, fee: 50 },
+        { min: 5001, max: 10000, fee: 100 },
+        { min: 10001, max: 25000, fee: 200 },
+        { min: 25001, max: 50000, fee: 400 },
+        { min: 50001, max: 100000, fee: 800 },
+        { min: 100001, max: 250000, fee: 1500 },
+        { min: 250001, max: 500000, fee: 1500 },
+        { min: 500001, max: 1000000, fee: 2500 },
+        { min: 1000001, max: 2000000, fee: 3000 }
+    ];
+
+    function getFee(amount) {
+        for (let rule of fees) {
+            if (amount >= rule.min && amount <= rule.max) {
+                return rule.fee;
+            }
+        }
+        return 0;
+    }
+
+    document.getElementById('amount').addEventListener('input', function() {
+        const amount = parseInt(this.value) || 0;
+        const fee = getFee(amount);
+        const total = amount - fee;
+        
+        const formatter = new Intl.NumberFormat('fr-FR', {
+            style: 'currency',
+            currency: 'XAF',
+            minimumFractionDigits: 0
+        });
+        
+        document.getElementById('amount_display').textContent = formatter.format(amount);
+        document.getElementById('fee_display').textContent = formatter.format(fee);
+        document.getElementById('total_display').textContent = formatter.format(total);
+        
+        if (fee > 0) {
+            document.getElementById('fee_warning').classList.remove('d-none');
+        } else {
+            document.getElementById('fee_warning').classList.add('d-none');
+        }
+    });
+</script>
+
+<?= $this->endSection() ?>
+<?= $this->include('layouts/footer') ?>
