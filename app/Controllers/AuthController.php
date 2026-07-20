@@ -30,19 +30,21 @@ class AuthController extends BaseController
             return redirect()->back()->with('error', 'Veuillez entrer un numéro.');
         }
 
-        // Vérifier le préfixe
         $prefixModel = new PrefixModel();
-        $isValid = $prefixModel->isValidPrefix($phone);
+        $operator = $prefixModel->findOperatorByPhone($phone);
 
-        if (!$isValid) {
-            return redirect()->back()->with('error', 'Numéro non autorisé. Utilisez 033 ou 037.');
+        if (!$operator) {
+            return redirect()->back()->with('error', 'Numéro non autorisé.');
         }
 
-        // Chercher ou créer l'utilisateur
         $userModel = new UserModel();
-        $user = $userModel->where('phone_number', $phone)->first();
+        $user = $userModel->findByPhone($phone);
 
         if (!$user) {
+            if (!$prefixModel->isOwnOperatorPhone($phone)) {
+                return redirect()->back()->with('error', 'Ce numéro externe ne peut pas être créé automatiquement.');
+            }
+
             $userId = $userModel->insert([
                 'phone_number' => $phone,
                 'balance'      => 0,

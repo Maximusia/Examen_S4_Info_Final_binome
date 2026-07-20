@@ -2,17 +2,21 @@
 
 namespace App\Controllers;
 
-use App\Models\UserModel;
-use App\Models\TransactionModel;
+use App\Libraries\TransferService;
 use App\Models\FeeRuleModel;
 use App\Models\OperationTypeModel;
+use App\Models\PrefixModel;
+use App\Models\TransactionModel;
+use App\Models\UserModel;
 
 class ClientController extends BaseController
 {
-    private $userModel;
-    private $transactionModel;
-    private $feeRuleModel;
-    private $operationTypeModel;
+    private UserModel $userModel;
+    private TransactionModel $transactionModel;
+    private FeeRuleModel $feeRuleModel;
+    private OperationTypeModel $operationTypeModel;
+    private PrefixModel $prefixModel;
+    private TransferService $transferService;
 
     public function __construct()
     {
@@ -20,16 +24,20 @@ class ClientController extends BaseController
         $this->transactionModel = new TransactionModel();
         $this->feeRuleModel = new FeeRuleModel();
         $this->operationTypeModel = new OperationTypeModel();
+        $this->prefixModel = new PrefixModel();
+        $this->transferService = new TransferService();
     }
 
     private function getCurrentUser()
     {
         $userId = session()->get('user_id');
         $user = $this->userModel->find($userId);
+
         if (!$user) {
             session()->destroy();
             return redirect()->to('/auth/login');
         }
+
         return $user;
     }
 
@@ -39,9 +47,9 @@ class ClientController extends BaseController
         $stats = $this->transactionModel->getUserStats($user['id']);
 
         return view('client/dashboard', [
-            'user'    => $user,
+            'user' => $user,
             'balance' => $user['balance'],
-            'stats'   => $stats,
+            'stats' => $stats,
         ]);
     }
 
@@ -50,7 +58,6 @@ class ClientController extends BaseController
         return redirect()->to('/dashboard');
     }
 
-    // ---------- DEPOT ----------
     public function deposit()
     {
         return view('client/deposit');
@@ -69,17 +76,16 @@ class ClientController extends BaseController
         $this->userModel->update($user['id'], ['balance' => $newBalance]);
 
         $this->transactionModel->insert([
-            'user_id'           => $user['id'],
-            'operation_type_id' => 1, // Dépôt
-            'amount'            => $amount,
-            'fee'               => 0,
-            'receiver_user_id'  => null,
+            'user_id' => $user['id'],
+            'operation_type_id' => 1,
+            'amount' => $amount,
+            'fee' => 0,
+            'receiver_user_id' => null,
         ]);
 
-        return redirect()->to('/dashboard')->with('success', "Dépôt de {$amount} Ar effectué. Nouveau solde : {$newBalance} Ar");
+        return redirect()->to('/dashboard')->with('success', "Depot de {$amount} Ar effectue. Nouveau solde : {$newBalance} Ar");
     }
 
-    // ---------- RETRAIT ----------
     public function withdraw()
     {
         $user = $this->getCurrentUser();
@@ -110,17 +116,16 @@ class ClientController extends BaseController
         $this->userModel->update($user['id'], ['balance' => $newBalance]);
 
         $this->transactionModel->insert([
-            'user_id'           => $user['id'],
-            'operation_type_id' => 2, // Retrait
-            'amount'            => $amount,
-            'fee'               => $fee,
-            'receiver_user_id'  => null,
+            'user_id' => $user['id'],
+            'operation_type_id' => 2,
+            'amount' => $amount,
+            'fee' => $fee,
+            'receiver_user_id' => null,
         ]);
 
-        return redirect()->to('/dashboard')->with('success', "Retrait de {$amount} Ar effectué. Frais : {$fee} Ar. Nouveau solde : {$newBalance} Ar");
+        return redirect()->to('/dashboard')->with('success', "Retrait de {$amount} Ar effectue. Frais : {$fee} Ar. Nouveau solde : {$newBalance} Ar");
     }
 
-    // ---------- TRANSFERT ----------
     public function transfer()
     {
         $user = $this->getCurrentUser();
@@ -128,56 +133,39 @@ class ClientController extends BaseController
         return view('client/transfer', [
             'balance' => $user['balance'],
             'transfer_fees' => $this->getFeeRulesByCode('transfer'),
+            'own_prefixes' => $this->prefixModel->getOwnOperatorPrefixes(),
+            'external_prefixes' => $this->prefixModel->getExternalOperatorPrefixes(),
         ]);
     }
 
     public function doTransfer()
     {
         $sender = $this->getCurrentUser();
-        $receiverPhone = trim($this->request->getPost('receiver_phone') ?? '');
+        $receiverInput = trim((string) ($this->request->getPost('receiver_phones') ?? $this->request->getPost('receiver_phone') ?? ''));
         $amount = (int) $this->request->getPost('amount');
+        $includeWithdrawalFee = $this->request->getPost('include_withdrawal_fee') ? true : false;
 
-        if (empty($receiverPhone) || $amount <= 0) {
-            return redirect()->back()->with('error', 'Données invalides.');
+        if ($receiverInput === '' || $amount <= 0) {
+            return redirect()->back()->with('error', 'Donnees invalides.');
         }
 
-        if ($sender['phone_number'] === $receiverPhone) {
-            return redirect()->back()->with('error', 'Vous ne pouvez pas vous transférer à vous-même.');
+        try {
+            $result = $this->transferService->transferMultiple(
+                $sender,
+                $receiverInput,
+                $amount,
+                $includeWithdrawalFee
+            );
+
+            return redirect()->to('/history')->with(
+                'success',
+                "Transfert multiple reussi. Reference : {$result['batch_reference']}. Total debite : {$result['total_debit']} Ar."
+            );
+        } catch (\Throwable $e) {
+            return redirect()->back()->withInput()->with('error', $e->getMessage());
         }
-
-        $receiver = $this->userModel->where('phone_number', $receiverPhone)->first();
-        if (!$receiver) {
-            return redirect()->back()->with('error', 'Destinataire introuvable.');
-        }
-
-        $fee = calculate_fee('transfer', $amount);
-        $total = $amount + $fee;
-
-        if ($sender['balance'] < $total) {
-            return redirect()->back()->with('error', "Solde insuffisant. Frais : {$fee} Ar. Total : {$total} Ar");
-        }
-
-        // Débiter l'expéditeur
-        $newSenderBalance = $sender['balance'] - $total;
-        $this->userModel->update($sender['id'], ['balance' => $newSenderBalance]);
-
-        // Créditer le destinataire
-        $newReceiverBalance = $receiver['balance'] + $amount;
-        $this->userModel->update($receiver['id'], ['balance' => $newReceiverBalance]);
-
-        // Sauvegarder la transaction
-        $this->transactionModel->insert([
-            'user_id'           => $sender['id'],
-            'operation_type_id' => 3, // Transfert
-            'amount'            => $amount,
-            'fee'               => $fee,
-            'receiver_user_id'  => $receiver['id'],
-        ]);
-
-        return redirect()->to('/dashboard')->with('success', "Transfert de {$amount} Ar à {$receiverPhone} effectué. Frais : {$fee} Ar.");
     }
 
-    // ---------- HISTORIQUE ----------
     public function history()
     {
         $user = $this->getCurrentUser();

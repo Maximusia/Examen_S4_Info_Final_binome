@@ -3,6 +3,7 @@
 namespace App\Controllers;
 
 use App\Models\PrefixModel;
+use App\Models\OperatorModel;
 use App\Models\FeeRuleModel;
 use App\Models\UserModel;
 use App\Models\TransactionModel;
@@ -11,6 +12,7 @@ use App\Models\OperationTypeModel;
 class OperatorController extends BaseController
 {
     private $prefixModel;
+    private $operatorModel;
     private $feeRuleModel;
     private $userModel;
     private $transactionModel;
@@ -19,6 +21,7 @@ class OperatorController extends BaseController
     public function __construct()
     {
         $this->prefixModel = new PrefixModel();
+        $this->operatorModel = new OperatorModel();
         $this->feeRuleModel = new FeeRuleModel();
         $this->userModel = new UserModel();
         $this->transactionModel = new TransactionModel();
@@ -53,7 +56,7 @@ class OperatorController extends BaseController
     // ---------- PREFIXES ----------
     public function prefixes()
     {
-        $prefixes = $this->prefixModel->orderBy('prefix', 'ASC')->findAll();
+        $prefixes = $this->prefixModel->getOwnOperatorPrefixes();
 
         return view('operator/prefixes', [
             'prefixes' => $prefixes,
@@ -75,7 +78,14 @@ class OperatorController extends BaseController
             return redirect()->back()->withInput()->with('error', 'Ce préfixe existe déjà.');
         }
 
-        $this->prefixModel->insert(['prefix' => $prefix]);
+        $ownOperator = $this->operatorModel->getOwnOperator();
+        if (!$ownOperator) {
+            return redirect()->back()->withInput()->with('error', 'Opérateur principal introuvable.');
+        }
+
+        if (!$this->prefixModel->addPrefixToOperator($ownOperator['id'], $prefix)) {
+            return redirect()->back()->withInput()->with('error', 'Impossible d\'ajouter ce préfixe.');
+        }
         return redirect()->to('/admin/prefixes')->with('success', "Préfixe {$prefix} ajouté.");
     }
 
@@ -93,16 +103,25 @@ class OperatorController extends BaseController
             return redirect()->back()->withInput()->with('error', 'Préfixe invalide. Utilisez 3 chiffres comme 033 ou 037.');
         }
 
-        $duplicate = $this->prefixModel
+        if ($this->prefixModel
             ->where('prefix', $prefix)
             ->where('id !=', $id)
-            ->first();
-
-        if ($duplicate) {
+            ->first()) {
             return redirect()->back()->withInput()->with('error', 'Ce préfixe existe déjà.');
         }
 
-        $this->prefixModel->update($id, ['prefix' => $prefix]);
+        $currentPrefix = $this->prefixModel->find($id);
+        $ownOperator = $this->operatorModel->getOwnOperator();
+        if (!$ownOperator) {
+            return redirect()->back()->withInput()->with('error', 'Opérateur principal introuvable.');
+        }
+
+        if (!$this->prefixModel->update($id, [
+            'prefix' => $prefix,
+            'operator_id' => $currentPrefix['operator_id'] ?? $ownOperator['id'],
+        ])) {
+            return redirect()->back()->withInput()->with('error', 'Impossible de mettre à jour ce préfixe.');
+        }
 
         return redirect()->to('/admin/prefixes')->with('success', "Préfixe {$prefix} mis à jour.");
     }
@@ -113,7 +132,7 @@ class OperatorController extends BaseController
             return redirect()->to('/admin/prefixes')->with('error', 'Préfixe introuvable.');
         }
 
-        $this->prefixModel->delete($id);
+        $this->prefixModel->deletePrefix($id);
         return redirect()->to('/admin/prefixes')->with('success', 'Préfixe supprimé.');
     }
 
