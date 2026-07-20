@@ -1,33 +1,18 @@
 <?php
 
 namespace App\Models;
+
 use CodeIgniter\Model;
 
 class UserModel extends Model
 {
     protected $table = 'users';
     protected $primaryKey = 'id';
+    protected $allowedFields = ['phone_number', 'balance'];
+    protected $useTimestamps = false;
 
-    protected $returnType = 'array';
-    protected $useAutoIncrement = true;
-
-    protected $allowedFields = [
-        'phone_number',
-        'balance'
-    ];
-
-    // Recherche un utilisateur par son numéro de téléphone
-    public function findByPhone(string $phone)
+    public function countAll()
     {
-        return $this->where('phone_number', $phone)->first();
+        return $this->countAllResults();
     }
-
-    // Met à jour le solde d'un utilisateur
-    public function updateBalance(int $userId, int $balance)
-    {
-        return $this->update($userId, [
-            'balance' => $balance
-        ]);
-    }
-
 }
