@@ -30,3 +30,14 @@
 - Validation des formulaires
 
 ---
+# Livraison v2 (date)
+- Étudiant 1 : 
+  - Gestion des préfixes autres opérateurs (ajout/suppression)
+  - Configuration du % de commission
+  - Statistiques séparées (gains opérateur / autres opérateurs)
+  - Montants envoyés à chaque opérateur
+- Étudiant 2 :
+
+  - Option "inclure les frais" pour le retrait
+  - Envoi multiple vers plusieurs numéros (division du montant)
+  - Adaptation du helper `calculate_transfer_fee` avec commission

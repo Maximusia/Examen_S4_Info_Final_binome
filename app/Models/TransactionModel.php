@@ -56,6 +56,30 @@ class TransactionModel extends Model
         $result = $this->where('operation_type_id', $typeId)->selectSum('amount')->get()->getRowArray();
         return $result['amount'] ?? 0;
     }
+
+    public function getFeesByOperatorType($isOwnOperator)
+    {
+        $result = $this->selectSum('transactions.fee')
+            ->join('users receiver', 'receiver.id = transactions.receiver_user_id', 'inner')
+            ->join('prefixes', "prefixes.prefix = SUBSTR(receiver.phone_number, 1, 3)", 'inner', false)
+            ->where('transactions.operation_type_id', 3)
+            ->where('prefixes.is_operator', $isOwnOperator ? 1 : 0)
+            ->get()
+            ->getRowArray();
+
+        return $result['fee'] ?? 0;
+    }
+
+    public function getAmountsByOperator(): array
+    {
+        return $this->select('prefixes.prefix, SUM(transactions.amount) AS total_amount', false)
+            ->join('users receiver', 'receiver.id = transactions.receiver_user_id', 'inner')
+            ->join('prefixes', "prefixes.prefix = SUBSTR(receiver.phone_number, 1, 3)", 'inner', false)
+            ->where('transactions.operation_type_id', 3)
+            ->groupBy('prefixes.prefix')
+            ->orderBy('prefixes.prefix', 'ASC')
+            ->findAll();
+    }
 }
 
 
