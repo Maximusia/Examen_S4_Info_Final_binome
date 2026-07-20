@@ -57,6 +57,5 @@ class TransactionModel extends Model
         return $result['amount'] ?? 0;
     }
 }
-Rédiger
-Écrire à Eddy Prosper
+
 
