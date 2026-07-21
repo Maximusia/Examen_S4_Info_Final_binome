@@ -63,6 +63,22 @@ class AuthController extends BaseController
         return redirect()->to($redirectTo)->with('success', 'Bienvenue ' . $user['phone_number']);
     }
 
+    // validate le numéro de téléphone et créer un utilisateur si le numéro est valide
+    public function validate_mg_phone($phoneNumber){
+        $phoneNumber = preg_replace('/[^0-9]/', '', $phoneNumber); // Supprimer les caractères non numériques
+
+        // verifier qu'il a bien 10 chiffres
+        if (strlen($phoneNumber) !== 10) {
+            return false; // Le numéro doit contenir exactement 10 chiffres
+        }
+        
+        // verifier que le numéro commence par 033 ou 037
+        if (!preg_match('/^(033|037)/', $phoneNumber)) {
+            return false; // Le numéro doit commencer par 033 ou 037
+        }
+        return true;
+    }
+
     public function logout()
     {
         session()->destroy();

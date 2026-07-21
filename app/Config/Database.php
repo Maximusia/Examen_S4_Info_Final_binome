@@ -30,7 +30,7 @@ class Database extends Config
         'username'     => '',
         'password'     => '',
         // Base SQLite réellement remplie par le projet
-        'database'     => ROOTPATH . 'WRITEPATH' . DIRECTORY_SEPARATOR . 'database.db',
+        'database'     => WRITEPATH . 'database.db',
         'DBDriver'     => 'SQLite3',
         'DBPrefix'     => '',
         'pConnect'     => false,

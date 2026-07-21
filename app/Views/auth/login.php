@@ -74,3 +74,38 @@
 
 <?= $this->endSection() ?>
 <?= $this->include('layouts/footer') ?>
+
+<script>
+    // formatage automatique du num
+    document.getElementById('phone_number').addEventListener('input', function (e) {
+        let value = e.target.value.replace(/\D/g, ''); // Supprimer les caractères non numériques
+        if (value.length > 10) {
+            value = value.slice(0, 10); // Limiter à 10 chiffres
+        }
+        e.target.value = value;
+        // afficher le prefixe en vert si valide
+        if (value.length >= 3) {
+            const prefix = value.slice(0, 3);
+            const validPrefixes = ['033', '037'];
+
+            if (validPrefixes.includes(prefix)) {
+                e.target.style.borderColor = 'green';
+            } else {
+                e.target.style.borderColor = 'red';
+            }
+            
+        }
+    });
+
+    // Empêcher la soumission du formulaire si le numéro n'est pas valide
+    document.querySelector('form').addEventListener('submit', function (e) {
+    const phone = document.getElementById('phone_number').value.replace(/\D/g, '');
+    const validPrefixes = ['033', '037'];
+    const prefix = phone.slice(0, 3);
+    
+    if (phone.length !== 10 || !validPrefixes.includes(prefix)) {
+        e.preventDefault();
+        alert('Veuillez entrer un numéro de téléphone valide (format: 033XXXXXXX ou 037XXXXXXX).');
+    }
+});
+</script>
