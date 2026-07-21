@@ -142,6 +142,39 @@ class ClientController extends BaseController
         ]);
     }
 
+    public function savings()
+    {
+        $user = $this->getCurrentUser();
+
+        return view('client/savings', [
+            'user' => $user,
+            'balance' => $user['balance'],
+            'savings_balance' => $user['savings_balance'] ?? 0,
+            'savings_percent' => $user['savings_percent'] ?? 0,
+        ]);
+    }
+
+    public function updateSavings()
+    {
+        $user = $this->getCurrentUser();
+        $percent = $this->request->getPost('savings_percent');
+
+        if ($percent === null || !is_numeric($percent)) {
+            return redirect()->back()->withInput()->with('error', 'Veuillez saisir un pourcentage valide.');
+        }
+
+        $percent = (int) round((float) $percent);
+        if ($percent < 0 || $percent > 100) {
+            return redirect()->back()->withInput()->with('error', 'Le pourcentage d\'épargne doit être compris entre 0 et 100.');
+        }
+
+        if (!$this->userModel->updateSavingsPreference($user['id'], $percent)) {
+            return redirect()->back()->withInput()->with('error', 'Impossible de mettre à jour la préférence d\'épargne.');
+        }
+
+        return redirect()->to('/savings')->with('success', "Préférence d'épargne mise à jour à {$percent}%.");
+    }
+
     public function doTransfer()
     {
         $sender = $this->getCurrentUser();

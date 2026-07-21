@@ -16,8 +16,13 @@ class TransactionModel extends Model
         'receiver_operator_id',
         'amount',
         'base_fee',
+        'promo_percent',
+        'promo_amount',
+        'base_fee_after_promo',
         'external_commission',
         'included_withdrawal_fee',
+        'savings_percent',
+        'savings_amount',
         'fee',
         'total_fee',
         'withdrawal_fee_included',
@@ -36,8 +41,13 @@ class TransactionModel extends Model
             'receiver_phone' => null,
             'receiver_operator_id' => null,
             'base_fee' => 0,
+            'promo_percent' => 0,
+            'promo_amount' => 0,
+            'base_fee_after_promo' => 0,
             'external_commission' => 0,
             'included_withdrawal_fee' => 0,
+            'savings_percent' => 0,
+            'savings_amount' => 0,
             'fee' => 0,
             'total_fee' => 0,
             'withdrawal_fee_included' => 0,
@@ -63,7 +73,12 @@ class TransactionModel extends Model
              operation_types.name AS operation_type,
              operation_types.name AS operation_name,
              COALESCE(transactions.receiver_phone, receiver.phone_number) AS receiver_phone,
-             receiver_operator.name AS receiver_operator_name',
+             receiver_operator.name AS receiver_operator_name,
+             transactions.promo_percent,
+             transactions.promo_amount,
+             transactions.base_fee_after_promo,
+             transactions.savings_percent,
+             transactions.savings_amount',
             false
         )
             ->join('operation_types', 'operation_types.id = transactions.operation_type_id')
@@ -84,12 +99,18 @@ class TransactionModel extends Model
         $withdrawals = $this->where('user_id', $userId)->where('operation_type_id', 2)->selectSum('amount')->get()->getRowArray();
         $transfersSent = $this->where('user_id', $userId)->where('operation_type_id', 3)->selectSum('amount')->get()->getRowArray();
         $transfersReceived = $this->where('receiver_user_id', $userId)->where('operation_type_id', 3)->selectSum('amount')->get()->getRowArray();
+        $savings = $this->selectSum('savings_amount')
+            ->where('receiver_user_id', $userId)
+            ->where('operation_type_id', 3)
+            ->get()
+            ->getRowArray();
 
         return [
             'total_deposits' => $deposits['amount'] ?? 0,
             'total_withdrawals' => $withdrawals['amount'] ?? 0,
             'total_transfers_sent' => $transfersSent['amount'] ?? 0,
             'total_transfers_received' => $transfersReceived['amount'] ?? 0,
+            'total_savings' => $savings['savings_amount'] ?? 0,
         ];
     }
 

@@ -47,7 +47,9 @@ class AuthController extends BaseController
 
             $userId = $userModel->insert([
                 'phone_number' => $phone,
-                'balance'      => 0,
+                'balance' => 0,
+                'savings_balance' => 0,
+                'savings_percent' => 0,
             ]);
             $user = $userModel->find($userId);
         }

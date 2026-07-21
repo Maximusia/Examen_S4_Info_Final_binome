@@ -118,6 +118,13 @@
             <div class="collapse navbar-collapse" id="navbarNav">
                 <ul class="navbar-nav ms-auto">
                     <?php if (session()->get('user_id')): ?>
+                        <?php if (!session()->get('is_operator')): ?>
+                            <li class="nav-item">
+                                <a class="nav-link" href="<?= base_url('/savings') ?>">
+                                    <i class="fas fa-piggy-bank"></i> Epargne
+                                </a>
+                            </li>
+                        <?php endif; ?>
                         <li class="nav-item">
                             <span class="nav-link">
                                 <i class="fas fa-user-circle"></i> <?= session()->get('phone_number') ?>

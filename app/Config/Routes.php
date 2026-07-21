@@ -25,6 +25,8 @@ $routes->group('', ['filter' => 'auth'], function ($routes) {
     $routes->post('withdraw', 'TransactionController::doWithdraw');
     $routes->get('transfer', 'TransactionController::transfer');
     $routes->post('transfer', 'TransactionController::doTransfer');
+    $routes->get('savings', 'TransactionController::savings');
+    $routes->post('savings', 'TransactionController::updateSavings');
     $routes->get('history', 'TransactionController::history');
 });
 
@@ -39,6 +41,7 @@ $routes->group('admin', ['filter' => 'operator'], function ($routes) {
     $routes->post('prefixes/update/(:num)', 'OperatorController::updatePrefix/$1');
     $routes->post('prefixes/delete/(:num)', 'OperatorController::deletePrefix/$1');
     $routes->get('fees', 'OperatorController::fees');
+    $routes->post('fees/settings', 'OperatorController::updateTransferSettings');
     $routes->post('fees/update/(:num)', 'OperatorController::updateFee/$1');
     $routes->get('statistics', 'OperatorController::statistics');
 });

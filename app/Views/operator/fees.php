@@ -16,6 +16,29 @@
     Les modifications prennent effet immédiatement sur les nouvelles transactions.
 </div>
 
+<div class="card shadow-sm border-0 mb-4">
+    <div class="card-body">
+        <form action="<?= base_url('/admin/fees/settings') ?>" method="post" class="row g-3 align-items-end">
+            <?= csrf_field() ?>
+            <div class="col-md-5">
+                <label class="form-label" for="other_operator_commission_percent">Commission autres opérateurs (%)</label>
+                <input type="number" step="0.01" min="0" class="form-control" id="other_operator_commission_percent" name="other_operator_commission_percent" value="<?= esc((string) ($other_operator_commission_percent ?? 2)) ?>" required>
+                <div class="form-text">S'applique aux transferts vers un autre opérateur.</div>
+            </div>
+            <div class="col-md-5">
+                <label class="form-label" for="same_operator_promo_percent">Promotion même opérateur (%)</label>
+                <input type="number" step="0.01" min="0" max="100" class="form-control" id="same_operator_promo_percent" name="same_operator_promo_percent" value="<?= esc((string) ($same_operator_promo_percent ?? 0)) ?>" required>
+                <div class="form-text">Réduction appliquée sur les frais de base pour les transferts internes.</div>
+            </div>
+            <div class="col-md-2">
+                <button type="submit" class="btn btn-success w-100">
+                    <i class="fas fa-save"></i> Enregistrer
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
 <ul class="nav nav-tabs mb-4" role="tablist">
     <li class="nav-item" role="presentation">
         <button class="nav-link active" data-bs-toggle="tab" data-bs-target="#withdrawals" type="button" role="tab">

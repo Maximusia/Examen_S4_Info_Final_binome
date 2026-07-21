@@ -23,6 +23,12 @@ CREATE TABLE IF NOT EXISTS operation_types (
     name TEXT NOT NULL
 );
 
+CREATE TABLE IF NOT EXISTS operator_settings (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    "key" TEXT NOT NULL UNIQUE,
+    "value" TEXT NOT NULL
+);
+
 CREATE TABLE IF NOT EXISTS fee_rules (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     operation_type_id INTEGER NOT NULL,
@@ -35,7 +41,10 @@ CREATE TABLE IF NOT EXISTS fee_rules (
 CREATE TABLE IF NOT EXISTS users (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     phone_number TEXT NOT NULL UNIQUE,
-    balance INTEGER DEFAULT 0
+    balance INTEGER DEFAULT 0,
+    savings_balance INTEGER NOT NULL DEFAULT 0,
+    savings_percent INTEGER NOT NULL DEFAULT 0
+        CHECK (savings_percent BETWEEN 0 AND 100)
 );
 
 CREATE TABLE IF NOT EXISTS transactions (
@@ -54,11 +63,26 @@ CREATE TABLE IF NOT EXISTS transactions (
     base_fee INTEGER NOT NULL DEFAULT 0
         CHECK (base_fee >= 0),
 
+    promo_percent INTEGER NOT NULL DEFAULT 0
+        CHECK (promo_percent >= 0),
+
+    promo_amount INTEGER NOT NULL DEFAULT 0
+        CHECK (promo_amount >= 0),
+
+    base_fee_after_promo INTEGER NOT NULL DEFAULT 0
+        CHECK (base_fee_after_promo >= 0),
+
     external_commission INTEGER NOT NULL DEFAULT 0
         CHECK (external_commission >= 0),
 
     included_withdrawal_fee INTEGER NOT NULL DEFAULT 0
         CHECK (included_withdrawal_fee >= 0),
+
+    savings_percent INTEGER NOT NULL DEFAULT 0
+        CHECK (savings_percent BETWEEN 0 AND 100),
+
+    savings_amount INTEGER NOT NULL DEFAULT 0
+        CHECK (savings_amount >= 0),
 
     fee INTEGER NOT NULL DEFAULT 0
         CHECK (fee >= 0),
@@ -108,6 +132,10 @@ INSERT INTO operation_types (code, name) VALUES
 ('retrait', 'Retrait'),
 ('transfer', 'Transfert');
 
+INSERT INTO operator_settings ("key", "value") VALUES
+('other_operator_commission_percent', '2'),
+('same_operator_promo_percent', '0');
+
 INSERT INTO fee_rules (operation_type_id, min_amount, max_amount, fee) VALUES
 (2, 100, 1000, 50),
 (2, 1001, 5000, 50),
@@ -132,4 +160,4 @@ INSERT INTO fee_rules (operation_type_id, min_amount, max_amount, fee) VALUES
 (3, 500001, 1000000, 2500),
 (3, 1000001, 2000000, 3000);
 
-INSERT INTO users (phone_number, balance) VALUES ('0331234567', 50000);
+INSERT INTO users (phone_number, balance, savings_balance, savings_percent) VALUES ('0331234567', 50000, 0, 0);

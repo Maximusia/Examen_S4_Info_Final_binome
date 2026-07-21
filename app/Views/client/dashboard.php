@@ -12,7 +12,7 @@
 
 <!-- Affichage du solde -->
 <div class="row mb-4">
-    <div class="col-md-6 col-lg-4">
+    <div class="col-md-6 col-lg-3 mb-3">
         <div class="card text-white bg-primary">
             <div class="card-body">
                 <div class="d-flex justify-content-between align-items-center">
@@ -30,8 +30,26 @@
         </div>
     </div>
 
+    <div class="col-md-6 col-lg-3 mb-3">
+        <div class="card text-white bg-dark">
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <p class="card-text mb-0">Epargne cumulée</p>
+                        <h3 class="card-title mt-2">
+                            <?= number_format((int) ($user['savings_balance'] ?? 0), 0, ',', ' ') ?> Ar
+                        </h3>
+                    </div>
+                    <div>
+                        <i class="fas fa-piggy-bank" style="font-size: 3rem; opacity: 0.5;"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <!-- Statistiques rapides -->
-    <div class="col-md-6 col-lg-4">
+    <div class="col-md-6 col-lg-3 mb-3">
         <div class="card text-white bg-info">
             <div class="card-body">
                 <div class="d-flex justify-content-between align-items-center">
@@ -47,7 +65,7 @@
         </div>
     </div>
 
-    <div class="col-md-6 col-lg-4">
+    <div class="col-md-6 col-lg-3 mb-3">
         <div class="card text-white bg-success">
             <div class="card-body">
                 <div class="d-flex justify-content-between align-items-center">
@@ -60,6 +78,20 @@
                     </div>
                 </div>
             </div>
+        </div>
+    </div>
+</div>
+
+<div class="row mb-4">
+    <div class="col-12">
+        <div class="alert alert-light border d-flex flex-wrap justify-content-between align-items-center mb-0">
+            <div>
+                <strong>Préférence d'épargne active :</strong>
+                <?= number_format((float) ($user['savings_percent'] ?? 0), 0, ',', ' ') ?> %
+            </div>
+            <a href="<?= base_url('/savings') ?>" class="btn btn-outline-dark btn-sm mt-2 mt-md-0">
+                <i class="fas fa-piggy-bank"></i> Modifier l'épargne
+            </a>
         </div>
     </div>
 </div>
@@ -93,6 +125,12 @@
         <a href="<?= base_url('/history') ?>" class="btn btn-primary btn-lg w-100 py-4">
             <i class="fas fa-history fa-2x d-block mb-2"></i>
             <span>Historique</span>
+        </a>
+    </div>
+    <div class="col-md-6 col-lg-3 mb-3">
+        <a href="<?= base_url('/savings') ?>" class="btn btn-dark btn-lg w-100 py-4">
+            <i class="fas fa-piggy-bank fa-2x d-block mb-2"></i>
+            <span>Epargne</span>
         </a>
     </div>
 </div>

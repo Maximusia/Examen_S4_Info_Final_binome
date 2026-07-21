@@ -5,6 +5,7 @@ namespace App\Controllers;
 use App\Models\FeeRuleModel;
 use App\Models\OperationTypeModel;
 use App\Models\OperatorModel;
+use App\Models\OperatorSettingModel;
 use App\Models\PrefixModel;
 use App\Models\TransactionModel;
 use App\Models\UserModel;
@@ -14,6 +15,7 @@ class OperatorController extends BaseController
     private PrefixModel $prefixModel;
     private OperatorModel $operatorModel;
     private FeeRuleModel $feeRuleModel;
+    private OperatorSettingModel $operatorSettingModel;
     private UserModel $userModel;
     private TransactionModel $transactionModel;
     private OperationTypeModel $operationTypeModel;
@@ -23,6 +25,7 @@ class OperatorController extends BaseController
         $this->prefixModel = new PrefixModel();
         $this->operatorModel = new OperatorModel();
         $this->feeRuleModel = new FeeRuleModel();
+        $this->operatorSettingModel = new OperatorSettingModel();
         $this->userModel = new UserModel();
         $this->transactionModel = new TransactionModel();
         $this->operationTypeModel = new OperationTypeModel();
@@ -243,7 +246,30 @@ class OperatorController extends BaseController
         return view('operator/fees', [
             'withdrawal_fees' => $this->getFeeRulesByCode('retrait'),
             'transfer_fees' => $this->getFeeRulesByCode('transfer'),
+            'other_operator_commission_percent' => $this->operatorSettingModel->getOtherOperatorCommissionPercent(),
+            'same_operator_promo_percent' => $this->operatorSettingModel->getSameOperatorPromoPercent(),
         ]);
+    }
+
+    public function updateTransferSettings()
+    {
+        $otherOperatorCommissionPercent = $this->request->getPost('other_operator_commission_percent');
+        $sameOperatorPromoPercent = $this->request->getPost('same_operator_promo_percent');
+
+        if (!is_numeric($otherOperatorCommissionPercent) || (float) $otherOperatorCommissionPercent < 0) {
+            return redirect()->back()->withInput()->with('error', 'La commission externe doit etre positive ou nulle.');
+        }
+
+        if (!is_numeric($sameOperatorPromoPercent) || (float) $sameOperatorPromoPercent < 0 || (float) $sameOperatorPromoPercent > 100) {
+            return redirect()->back()->withInput()->with('error', 'La promotion interne doit etre comprise entre 0 et 100.');
+        }
+
+        if (!$this->operatorSettingModel->setOtherOperatorCommissionPercent($otherOperatorCommissionPercent)
+            || !$this->operatorSettingModel->setSameOperatorPromoPercent($sameOperatorPromoPercent)) {
+            return redirect()->back()->withInput()->with('error', 'Impossible de mettre a jour les parametres de transfert.');
+        }
+
+        return redirect()->to('/admin/fees')->with('success', 'Parametres de transfert mis a jour.');
     }
 
     public function updateFee($id)

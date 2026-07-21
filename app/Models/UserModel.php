@@ -8,7 +8,7 @@ class UserModel extends Model
 {
     protected $table = 'users';
     protected $primaryKey = 'id';
-    protected $allowedFields = ['phone_number', 'balance'];
+    protected $allowedFields = ['phone_number', 'balance', 'savings_balance', 'savings_percent'];
     protected $useTimestamps = false;
 
     public function findByPhone($phone): ?array
@@ -24,6 +24,35 @@ class UserModel extends Model
         }
 
         return (bool) $this->update($userId, ['balance' => (int) $newBalance]);
+    }
+
+    public function updateSavingsPreference($userId, $percent): bool
+    {
+        if (!is_numeric($percent)) {
+            return false;
+        }
+
+        $percent = (int) round((float) $percent);
+        if ($percent < 0 || $percent > 100) {
+            return false;
+        }
+
+        return (bool) $this->update($userId, ['savings_percent' => $percent]);
+    }
+
+    public function creditSavings($userId, $amount): bool
+    {
+        $amount = (int) $amount;
+        if ($amount <= 0) {
+            return true;
+        }
+
+        $builder = $this->builder();
+        $builder->set('savings_balance', "COALESCE(savings_balance, 0) + {$amount}", false)
+            ->where('id', $userId);
+
+        $builder->update();
+        return $this->db->affectedRows() > 0;
     }
 
     public function debit($userId, $amount): bool
